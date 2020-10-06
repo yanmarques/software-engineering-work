@@ -56,11 +56,13 @@ class BookLoader:
                     subject=subject)
 
     def __call__(self, book_tree):
-        item = Book(subject=self.subject)
+        item = Book()
         loader = ItemLoader(item=item, selector=book_tree)
         loader.add_xpath('name', './/small//text()')
         loader.add_xpath('download_url', ".//a[@title='Download']/@href")
-        return ensure_has_return(loader.load_item(), 'download_url')
+        loaded_book = loader.load_item()
+        loaded_book['subject'] = self.subject
+        return ensure_has_return(loaded_book, 'download_url')
 
     
 class MaxSubjectLoader(SubjectLoader):
