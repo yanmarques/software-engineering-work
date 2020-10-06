@@ -3,6 +3,25 @@
 from setuptools import setup, find_packages
 
 import sys
+import os
+
+
+def list_files(path: str):
+    with os.scandir(path) as scan:
+        for entry in scan:
+            if entry.is_file():
+                yield entry.path
+            else:
+                yield from list_files(entry.path)
+
+
+def list_icons():
+    icons = []
+    for icon in list_files('icons'):
+        directory = os.path.dirname(icon)
+        icons.append((os.path.join('share', directory), [icon]))
+    return icons
+
 
 setup(name='unisul-sync-gui',
       version='0.0.1',
@@ -27,5 +46,8 @@ setup(name='unisul-sync-gui',
           'scrapy_cookies',
           'requests'
       ],
-      python_requires='>=3'
+      python_requires='>=3',
+      data_files=[
+          ('share/applications/', ['unisul-sync-gui.desktop']),
+      ] + list_icons()
      )
