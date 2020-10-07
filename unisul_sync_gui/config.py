@@ -5,8 +5,7 @@ import os
 
 def load():
     if not os.path.exists(config_name()):
-        if not os.path.exists(config_path()):
-            os.makedirs(os.path.dirname(config_path()), mode=0o700)
+        os.makedirs(config_path(), mode=0o700, exist_ok=True)
 
         # insert the default settings
         update(settings.DEFAULT_CONFIG_SETTINGS, no_load=True)
