@@ -27,7 +27,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True , icon='eva.ico')
+          console=False , icon='eva.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
