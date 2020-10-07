@@ -24,3 +24,7 @@ def entrypoint():
     else:
         # start app
         unisul_sync_gui.main()
+
+    
+if __name__ == '__main__':
+    entrypoint()
