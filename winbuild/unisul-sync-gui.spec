@@ -4,11 +4,11 @@ block_cipher = None
 
 
 a = Analysis(['.\\..\\unisul_sync_gui\\cli.py'],
-             pathex=['.\\..\\'],
+             pathex=[],
              binaries=[],
              datas=[],
              hiddenimports=[],
-             hookspath=['hooks'],
+             hookspath=['.\\winbuild\\hooks'],
              runtime_hooks=[],
              excludes=[],
              win_no_prefer_redirects=False,
