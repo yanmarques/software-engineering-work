@@ -92,7 +92,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
 
         result = spider.crawl(sync_spider.BookDownloaderSpider, 
                               settings=settings,
-                              timeout=None)
+                              timeout=len(sync_data) * 3.5)
         
         if result is not None:
             print(result)
