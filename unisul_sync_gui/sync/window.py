@@ -90,7 +90,9 @@ class Listing(QMainWindow, screen.Ui_Dialog):
             'CUSTOM_BOOKS': sync_data
         }
 
-        result = spider.crawl(sync_spider.BookDownloaderSpider, settings=settings)
+        result = spider.crawl(sync_spider.BookDownloaderSpider, 
+                              settings=settings,
+                              timeout=None)
         
         if result is not None:
             print(result)
@@ -298,11 +300,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
                 'EXPORTER_DIR': config.config_path()
             }
 
-            result = spider.crawl(spider_cls, settings=settings)
-            
-            if result is not None:
-                print(result)
-                return
+            spider.crawl(spider_cls, settings=settings)
 
         with open(exported_path) as io_reader:
             return json.load(io_reader)

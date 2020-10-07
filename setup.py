@@ -44,7 +44,8 @@ setup(name='unisul-sync-gui',
           'PyQt5',
           'scrapy',
           'scrapy_cookies',
-          'requests'
+          'requests',
+          'crochet'
       ],
       python_requires='>=3',
       data_files=[
