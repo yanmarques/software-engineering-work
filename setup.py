@@ -2,6 +2,7 @@
 
 from setuptools import setup, find_packages
 
+import platform
 import sys
 import os
 
@@ -21,6 +22,12 @@ def list_icons():
         directory = os.path.dirname(icon)
         icons.append((os.path.join('share', directory), [icon]))
     return icons
+
+
+def deduce_data_files():
+    if platform.system() == 'Windows':
+        return [('share/applications/', ['unisul-sync-gui.desktop']),
+                ] + list_icons()
 
 
 setup(name='unisul-sync-gui',
@@ -48,7 +55,5 @@ setup(name='unisul-sync-gui',
           'crochet'
       ],
       python_requires='>=3',
-      data_files=[
-          ('share/applications/', ['unisul-sync-gui.desktop']),
-      ] + list_icons()
+      data_files=deduce_data_files()
      )
