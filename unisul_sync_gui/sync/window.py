@@ -90,13 +90,9 @@ class Listing(QMainWindow, screen.Ui_Dialog):
             'CUSTOM_BOOKS': sync_data
         }
 
-        result = spider.crawl(sync_spider.BookDownloaderSpider, 
-                              settings=settings,
-                              timeout=len(sync_data) * 3.5)
-        
-        if result is not None:
-            print(result)
-            return
+        spider.crawl(sync_spider.BookDownloaderSpider, 
+                     settings=settings,
+                     timeout=len(sync_data) * 3.5)
 
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
