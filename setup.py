@@ -25,7 +25,7 @@ def list_icons():
 
 
 def deduce_data_files():
-    if platform.system() == 'Windows':
+    if platform.system() != 'Windows':
         return [('share/applications/', ['unisul-sync-gui.desktop']),
                 ] + list_icons()
 
