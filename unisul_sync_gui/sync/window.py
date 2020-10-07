@@ -302,7 +302,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
 
             spider.crawl(spider_cls, settings=settings)
 
-        with open(exported_path) as io_reader:
+        with open(exported_path, encoding='utf8') as io_reader:
             return json.load(io_reader)
 
     def _select_first_subject(self):

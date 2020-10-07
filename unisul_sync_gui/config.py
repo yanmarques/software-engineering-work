@@ -10,7 +10,7 @@ def load():
         # insert the default settings
         update(settings.DEFAULT_CONFIG_SETTINGS, no_load=True)
 
-    with open(config_name()) as io_reader:
+    with open(config_name(), encoding='utf8') as io_reader:
         return json.load(io_reader)
 
 
@@ -20,7 +20,7 @@ def update(new_settings, no_load=False):
     for k, v in new_settings.items():
         old_settings[k] = v
 
-    with open(config_name(), 'w') as io_writer:
+    with open(config_name(), 'w', encoding='utf8') as io_writer:
         json.dump(old_settings, io_writer, indent=4)
 
 

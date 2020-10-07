@@ -45,7 +45,7 @@ class Authenticator:
         if not os.path.exists(auth_name()):
             return self._set_status(False)
 
-        with open(auth_name()) as io_reader:
+        with open(auth_name(), encoding='utf8') as io_reader:
             auth_data = json.load(io_reader).values()
 
             # stop here if we got an unexpected format
@@ -75,7 +75,7 @@ def check_response(response):
 
 
 def dump_keys(username, password):
-    with open(auth_name(), 'w') as io_writer:
+    with open(auth_name(), 'w', encoding='utf8') as io_writer:
         json.dump({'username': username, 'password': password}, io_writer, indent=4)
     os.chmod(auth_name(), 0o600)
 
