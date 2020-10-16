@@ -45,7 +45,7 @@ setup(name='unisul-sync-gui',
       packages=find_packages(),
       include_package_data=True,
       entry_points={
-          'console_scripts': ['unisul-sync-gui=unisul_sync_gui.cli:entrypoint']
+          'console_scripts': ['unisul-sync-gui=cli:entrypoint']
       },
       install_requires=[
           'PyQt5',
