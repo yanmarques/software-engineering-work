@@ -52,7 +52,10 @@ setup(name='unisul-sync-gui',
           'scrapy',
           'scrapy_cookies',
           'requests',
-          'crochet'
+          'crochet',
+      ],
+      install_recommends=[
+          'patool'
       ],
       python_requires='>=3',
       data_files=deduce_data_files()
