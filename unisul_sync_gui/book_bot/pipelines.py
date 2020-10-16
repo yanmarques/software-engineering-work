@@ -8,6 +8,7 @@ import os
 import logging
 from abc import ABC, abstractmethod
 
+from unisul_sync_gui.app import context
 from unisul_sync_gui.book_bot.utils import os_files
 from twisted.internet import defer
 from scrapy import Request
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 class SyncPipeline(FilesPipeline):
+
     def media_to_download(self, request, info):
         def _onsuccess(result):
             if not result:
@@ -50,13 +52,13 @@ class SyncPipeline(FilesPipeline):
             yield Request(item['download_url'], meta={'book': item})
 
     def item_completed(self, results, item, info):
-        logger.debug(results)
+        context.signals.item_completed.emit(results=results,
+                                            item=item, 
+                                            info=info)
         return item
 
     def file_path(self, request, response=None, info=None):
-        media_name = request.meta['book']['filename'] 
-        media_dir = request.meta['book']['subject']['name']
-        return os.path.join(media_dir, media_name)
+        return request.meta['book'].path
 
 
 class BaseExporter:

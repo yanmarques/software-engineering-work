@@ -1,7 +1,7 @@
-from . import test
+from . import extractfile
 
 
 def available_modules():
     return [
-        test
+        extractfile
     ]

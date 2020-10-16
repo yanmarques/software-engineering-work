@@ -22,3 +22,5 @@ class _signals:
     started = pysignal()
 
     showing = pysignal()
+    
+    item_completed = pysignal()
