@@ -1,4 +1,6 @@
 from . import settings
+
+import platform
 import json
 import os
 
@@ -25,7 +27,14 @@ def update(new_settings, no_load=False):
 
 
 def config_path():
-    return os.path.expanduser(settings.CONFIG_PATH)
+    platforms = {
+        'Windows': settings.WIN_CONFIG_PATH
+    }
+
+    path = platforms.get(platform.system(), 
+                         settings.CONFIG_PATH)
+
+    return os.path.expanduser(path)
 
 
 def config_name():
