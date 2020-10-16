@@ -3,7 +3,7 @@
 block_cipher = None
 
 
-a = Analysis(['.\\..\\unisul_sync_gui\\cli.py'],
+a = Analysis(['.\\..\\cli.py'],
              pathex=[],
              binaries=[],
              datas=[('.\\..\\unisul_sync_gui\\book_bot\\spiders\\*.py',
