@@ -1,6 +1,8 @@
 from ..app import context, cached_property, AppCtxt
 from ..login.window import Login
 from ..book_bot.spiders.sync_spider import BookDownloaderSpider
+from patoolib import extract_archive, test_archive, ArchivePrograms
+from patoolib.util import PatoolError
 
 from distutils.spawn import find_executable
 import abc
@@ -9,14 +11,6 @@ import sys
 import zipfile
 import importlib
 import subprocess
-
-HAS_PATOOL = False
-try:
-    from patoolib import extract_archive, test_archive, ArchivePrograms
-    from patoolib.util import PatoolError
-    HAS_PATOOL = True
-except ImportError:
-    pass
 
 
 class ExtractListener(abc.ABC):
@@ -96,10 +90,6 @@ class UnarExtraction(ExtractionStrategy):
 
 
 class PatoolExtraction(ExtractionStrategy):
-    @property
-    def is_supported(self):
-        return HAS_PATOOL
-
     def book_to_extract(self, path):
         try:
             test_archive(path)
