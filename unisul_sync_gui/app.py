@@ -25,8 +25,7 @@ class AppCtxt:
     def __init__(self):
         self._clear_config()
         self.windows = {}
-        self.app
-        self.signals = signals._signals()  
+        self.app  
 
     @cached_property
     def app(self):
