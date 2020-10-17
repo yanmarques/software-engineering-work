@@ -13,7 +13,12 @@ import platform
 class ExtractListener(abc.ABC):
     def __init__(self):
         self.init()
-        context.signals.item_completed.connect(self.on_item)
+        
+        self._loader, self._count = None, 0
+        self._index, self._per_bump = 0, 0
+
+        context.signals.item_completed.connect(self._on_item)
+        context.signals.syncing.connect(self._set_loader)
 
     @abc.abstractproperty
     def strategies(self):
@@ -23,13 +28,19 @@ class ExtractListener(abc.ABC):
     def init(self):
         pass
 
-    def on_item(self, results=None, item=None, info=None):
+    def _set_loader(self, **kwargs):
+        self._loader = kwargs.get('loader')
+        self._count = kwargs.get('count')
+        self._index = 0
+        self._per_bump = 100 / self._count
+
+    def _on_item(self, results=None, item=None, info=None):
         books = [book for ok, book in results if ok]
         for book in books:
             path = os.path.join(context.config['sync_dir'], book['path'])
-            self.try_extractions(path)
+            self._try_extractions(path)
 
-    def try_extractions(self, path):
+    def _try_extractions(self, path):
         for strategy in self.strategies:
             if not strategy.is_supported:
                 continue
@@ -45,7 +56,9 @@ class ExtractListener(abc.ABC):
                 pass
                 # os.unlink(path)
 
-        
+        self._loader.bump.emit(self._per_bump)
+
+
 class ExtractionStrategy(abc.ABC):
     @property
     def is_supported(self):
@@ -153,7 +166,7 @@ class UnpackPlugin(ExtractListener):
 
         if not any(obj.is_supported
                    for obj in self.rar_extractors):
-            msg = QMessageBox()
+            msg = QMessageBox(parent=sender)
             msg.setIcon(QMessageBox.Warning)
             text = """
 Arquivos em formato Rar não suportados para extração.

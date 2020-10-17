@@ -25,3 +25,5 @@ class _signals:
     shown = pysignal()
     
     item_completed = pysignal()
+    syncing = pysignal()
+    synced = pysignal()
