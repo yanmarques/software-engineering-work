@@ -1,0 +1,3 @@
+#!/usr/bin/python3
+from unisul_sync_gui import dist_util
+dist_util.uninstall_weak_requirements()

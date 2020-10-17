@@ -1,33 +1,61 @@
 #!/usr/bin/env python
 
+from unisul_sync_gui.dist_util import (
+    deduce_data_files,
+    deduce_install_requires
+)
 from setuptools import setup, find_packages
 
-import platform
+import shutil
 import sys
 import os
 
-
-def list_files(path: str):
-    with os.scandir(path) as scan:
-        for entry in scan:
-            if entry.is_file():
-                yield entry.path
-            else:
-                yield from list_files(entry.path)
-
-
-def list_icons():
-    icons = []
-    for icon in list_files('icons'):
-        directory = os.path.dirname(icon)
-        icons.append((os.path.join('share', directory), [icon]))
-    return icons
+HAS_STDEB = True
+try:
+    from stdeb.command import (
+        bdist_deb, 
+        sdist_dsc,
+        debianize,
+    )
+    from stdeb import util
+except ImportError:
+    HAS_STDEB = False
 
 
-def deduce_data_files():
-    if platform.system() != 'Windows':
-        return [('share/applications/', ['unisul-sync-gui.desktop']),
-                ] + list_icons()
+def deduce_cmdclass():
+    cmdclass = {}
+
+    if HAS_STDEB:
+        cmdclass.update(custom_deb=CustomDeb,
+                        sdist_dsc=sdist_dsc.sdist_dsc)
+    return cmdclass
+
+
+if HAS_STDEB:
+    class CustomDeb(bdist_deb.bdist_deb):
+        def run(self):
+            old_fn = util.process_command
+
+            def wrapper(cmd, cwd=None):
+                if cmd[0] == 'dpkg-buildpackage':
+                    # make our customizations
+                    self.announce('Customizing "debian" source directory...')
+
+                    target_dir = os.path.join(cwd, 'debian')
+
+                    # clean it up
+                    shutil.rmtree(target_dir)
+
+                    # put our debian
+                    self.copy_tree('debian', target_dir)
+
+                # actually run command
+                old_fn(cmd, cwd=cwd)
+
+            # hacky solution to customize build
+            sys.modules['stdeb'].util.process_command = wrapper
+
+            super().run() 
 
 
 setup(name='unisul-sync-gui',
@@ -47,14 +75,8 @@ setup(name='unisul-sync-gui',
       entry_points={
           'console_scripts': ['unisul-sync-gui=cli:entrypoint']
       },
-      install_requires=[
-          'PyQt5',
-          'scrapy',
-          'scrapy_cookies',
-          'requests',
-          'crochet',
-          'rarfile'
-      ],
+      install_requires=deduce_install_requires(),
       python_requires='>=3',
-      data_files=deduce_data_files()
+      data_files=deduce_data_files(),
+      cmdclass=deduce_cmdclass()
      )
