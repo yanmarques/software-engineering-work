@@ -1,11 +1,11 @@
-import unisul_sync_gui
+from unisul_sync_gui import gui
 
 import sys
 
 
 def entrypoint():
     # start app
-    return unisul_sync_gui.main()
+    return gui.show()
 
     
 if __name__ == '__main__':
