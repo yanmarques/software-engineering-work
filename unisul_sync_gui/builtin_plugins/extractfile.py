@@ -7,6 +7,7 @@ import abc
 import os
 import zipfile
 import traceback
+import platform
 
 
 class ExtractListener(abc.ABC):
@@ -65,6 +66,29 @@ class ExtractionStrategy(abc.ABC):
         return False
 
 
+class WinRARExtraction(ExtractionStrategy):
+    @cached_property
+    def is_supported(self):
+        if platform.system() != 'Windows':
+            return False
+
+        winrar_dir = 'WinRAR'
+
+        paths = [
+            os.getenv('ProgramFiles'),
+            os.getenv('ProgramFiles(x86)'),
+        ]
+
+        return any(os.path.exists(os.path.join(path, winrar_dir)) 
+                   for path in paths)
+
+    def book_to_extract(self, path):
+        return False
+
+    def extract(self, path):
+        print('extracting')
+
+
 class RARExtraction(ExtractionStrategy):
     @property
     def is_supported(self):
@@ -95,15 +119,25 @@ class UnpackPlugin(ExtractListener):
     @cached_property
     def strategies(self):
         return [
-            RARExtraction(),
             ZIPExtraction(),
+        ] + self.rar_extractors
+
+    @property
+    def rar_extractors(self):
+        return [
+            RARExtraction(),
+            WinRARExtraction()
         ]
 
     def init(self):
         context.signals.shown.connect(self._check_rar_support)
 
     def _check_rar_support(self, sender):
-        if isinstance(sender, Listing) and not RARExtraction().is_supported:
+        if not isinstance(sender, Listing):
+            return
+
+        if not any(obj.is_supported
+                   for obj in self.rar_extractors):
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
             text = """
