@@ -31,7 +31,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         # fetch and handle data
         self._fetch_and_load_subjects()
         self._fetch_books()
-        self._select_first_subject()
+        self.on_select_all(None)
 
         # signaling
         self.subject_listview.clicked.connect(self.on_subject_selected)
@@ -42,6 +42,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
 
         self.show()
         context.signals.shown.emit(sender=self)
+        self.on_sync(None)
 
     def on_logout(self, event):
         msg = QMessageBox()
@@ -93,7 +94,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
 
         spider.crawl(sync_spider.BookDownloaderSpider, 
                      settings=settings,
-                     timeout=len(sync_data) * 3.5)
+                     timeout=len(sync_data) * 30)
 
         msg = QMessageBox()
         msg.setIcon(QMessageBox.Information)
