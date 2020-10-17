@@ -1,17 +1,25 @@
 from ..app import context, cached_property, AppCtxt
+from ..sync.window import Listing
+from PyQt5.QtWidgets import QMessageBox
 import rarfile
 
 import abc
 import os
 import zipfile
+import traceback
 
 
 class ExtractListener(abc.ABC):
     def __init__(self):
+        self.init()
         context.signals.item_completed.connect(self.on_item)
 
     @abc.abstractproperty
     def strategies(self):
+        pass
+
+    # overwritable
+    def init(self):
         pass
 
     def on_item(self, results=None, item=None, info=None):
@@ -30,8 +38,8 @@ class ExtractListener(abc.ABC):
                     break
             except AttributeError:
                 raise
-            except Exception as exc:
-                print(exc)
+            except Exception:
+                traceback.print_exc()
             finally:
                 pass
                 # os.unlink(path)
@@ -58,6 +66,14 @@ class ExtractionStrategy(abc.ABC):
 
 
 class RARExtraction(ExtractionStrategy):
+    @property
+    def is_supported(self):
+        try:
+            rarfile.tool_setup()
+            return True
+        except rarfile.RarCannotExec:
+            return False
+
     def book_to_extract(self, path):
         return rarfile.is_rarfile(path)
 
@@ -82,6 +98,22 @@ class UnpackPlugin(ExtractListener):
             RARExtraction(),
             ZIPExtraction(),
         ]
+
+    def init(self):
+        context.signals.shown.connect(self._check_rar_support)
+
+    def _check_rar_support(self, sender):
+        if isinstance(sender, Listing) and not RARExtraction().is_supported:
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            text = """
+Arquivos em formato Rar não suportados para extração.
+
+Para extrair arquivos em formato Rar baixe o programa apropriado.
+"""
+            msg.setText(text)
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
 
 
 plugin = UnpackPlugin

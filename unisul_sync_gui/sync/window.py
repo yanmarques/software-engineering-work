@@ -41,6 +41,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         self.logout_button.clicked.connect(self.on_logout)
 
         self.show()
+        context.signals.shown.emit(sender=self)
 
     def on_logout(self, event):
         msg = QMessageBox()
