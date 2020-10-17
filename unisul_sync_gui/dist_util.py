@@ -62,7 +62,7 @@ def pip_weak_requirements(*command):
     try:
         subprocess.run(cmd, 
                        check=True, 
-                       capture_output=True)
+                       stderr=subprocess.PIPE)
         return True
     except subprocess.CalledProcessError as proc:
         error = proc.stderr.decode().strip()
