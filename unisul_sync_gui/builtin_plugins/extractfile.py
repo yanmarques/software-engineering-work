@@ -1,16 +1,9 @@
 from ..app import context, cached_property, AppCtxt
-from ..login.window import Login
-from ..book_bot.spiders.sync_spider import BookDownloaderSpider
-from patoolib import extract_archive, test_archive, ArchivePrograms
-from patoolib.util import PatoolError
+import rarfile
 
-from distutils.spawn import find_executable
 import abc
 import os
-import sys
 import zipfile
-import importlib
-import subprocess
 
 
 class ExtractListener(abc.ABC):
@@ -64,56 +57,30 @@ class ExtractionStrategy(abc.ABC):
         return False
 
 
-class UnarExtraction(ExtractionStrategy):
-    @property
-    def is_supported(self):
-        return self._extract_command is not None
-
-    @cached_property
-    def _extract_command(self):
-        return find_executable('unar')
-
-    @cached_property
-    def _list_command(self):
-        return find_executable('lsar')
-
+class RARExtraction(ExtractionStrategy):
     def book_to_extract(self, path):
-        cmd = [self._list_command, path]
-        return subprocess.call(cmd) == 0
+        return rarfile.is_rarfile(path)
 
     def extract(self, path):
-        directory = os.path.dirname(path)
-        cmd = [self._extract_command, '-o', directory, path]
-        ret_code = subprocess.call(cmd)
-        if ret_code != 0:
-            print('Something went wrong extracting using unar')
+        with rarfile.RarFile(path) as rar:
+            rar.extractall(path=os.path.dirname(path))
 
 
-class PatoolExtraction(ExtractionStrategy):
+class ZIPExtraction(ExtractionStrategy):
     def book_to_extract(self, path):
-        try:
-            test_archive(path)
-            return True
-        except PatoolError:
-            return False
+        return zipfile.is_zipfile(path)
 
     def extract(self, path):
-        try:
-            extract_archive(path, 
-                            outdir=os.path.dirname(path),
-                            interactive=False)
-            print('extracted')
-        except PatoolError as exc:
-            print('error')
-            print(exc)
+        with zipfile.ZipFile(path) as zip:
+            zip.extractall(path=os.path.dirname(path))
 
 
 class UnpackPlugin(ExtractListener):
     @cached_property
     def strategies(self):
         return [
-            UnarExtraction(),
-            PatoolExtraction()
+            RARExtraction(),
+            ZIPExtraction(),
         ]
 
 

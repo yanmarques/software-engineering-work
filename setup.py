@@ -53,7 +53,7 @@ setup(name='unisul-sync-gui',
           'scrapy_cookies',
           'requests',
           'crochet',
-          'patool'
+          'rarfile'
       ],
       python_requires='>=3',
       data_files=deduce_data_files()
