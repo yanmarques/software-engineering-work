@@ -61,7 +61,8 @@ def pip_weak_requirements(*command):
 
     try:
         subprocess.run(cmd, 
-                       check=True, 
+                       check=True,
+                       stdout=subprocess.DEVNULL,
                        stderr=subprocess.PIPE)
         return True
     except subprocess.CalledProcessError as proc:
