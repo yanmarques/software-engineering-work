@@ -88,7 +88,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         self.on_sync(None)
 
     def on_logout(self, event):
-        msg = QMessageBox()
+        msg = QMessageBox(parent=self)
         msg.setIcon(QMessageBox.Question)
         msg.setText('Tem certeza que deseja sair?')
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -119,7 +119,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
             sync_data.extend(selected_books)
 
         if not sync_data:
-            msg = QMessageBox()
+            msg = QMessageBox(parent=self)
             msg.setIcon(QMessageBox.Warning)
             msg.setText('Nenhum conteúdo selecionado. Por favor tente selecionar pelo menos 1.')
             msg.setStandardButtons(QMessageBox.Ok)
@@ -279,8 +279,12 @@ class Listing(QMainWindow, screen.Ui_Dialog):
             msg = QMessageBox(parent=self)
             msg.setIcon(QMessageBox.Warning)
             msg.setText('Deseja continuar usando este diretório: \n{}'.format(dir_from_cfg))
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            if msg.exec_() == QMessageBox.No:
+            msg.setStandardButtons(QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+            result = msg.exec_()
+            if result == QMessageBox.Cancel:
+                return
+
+            if result == QMessageBox.No:
                 dir_from_cfg = None
 
         target_dir = dir_from_cfg or self._open_sync_target_dir()
@@ -298,14 +302,14 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         else:
             msg = QMessageBox(parent=self)
             msg.setIcon(QMessageBox.Warning)
-            msg.setText('Nenhum diretório para a sincronização foi especificado. Abortando')
+            msg.setText('Nenhum diretório para a sincronização selecionado.')
             msg.setStandardButtons(QMessageBox.Ok)
             msg.exec_()
 
         return target_dir
 
     def _open_sync_target_dir(self):
-        dialog = QFileDialog()
+        dialog = QFileDialog(parent=self)
         dialog.setFileMode(QFileDialog.DirectoryOnly)
         
         if dialog.exec_():

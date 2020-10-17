@@ -1,4 +1,5 @@
 from ..app import context, cached_property, AppCtxt
+from ..config import load as cfg_load
 from ..sync.window import Listing
 from PyQt5.QtWidgets import QMessageBox
 import rarfile
@@ -150,7 +151,7 @@ class UnpackPlugin(ExtractListener):
             ZIPExtraction(),
         ] + self.rar_extractors
 
-    @property
+    @cached_property
     def rar_extractors(self):
         return [
             RARExtraction(),
@@ -164,9 +165,12 @@ class UnpackPlugin(ExtractListener):
         if not isinstance(sender, Listing):
             return
 
-        if not any(obj.is_supported
+        config = cfg_load()
+
+        if config.get('first_time', True) and not any(obj.is_supported
                    for obj in self.rar_extractors):
             msg = QMessageBox(parent=sender)
+            msg.setWindowTitle('Plugin - Extração de Arquivos')
             msg.setIcon(QMessageBox.Warning)
             text = """
 Arquivos em formato Rar não suportados para extração.
