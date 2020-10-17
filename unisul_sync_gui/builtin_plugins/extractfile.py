@@ -66,29 +66,6 @@ class ExtractionStrategy(abc.ABC):
         return False
 
 
-class WinRARExtraction(ExtractionStrategy):
-    @cached_property
-    def is_supported(self):
-        if platform.system() != 'Windows':
-            return False
-
-        winrar_dir = 'WinRAR'
-
-        paths = [
-            os.getenv('ProgramFiles'),
-            os.getenv('ProgramFiles(x86)'),
-        ]
-
-        return any(os.path.exists(os.path.join(path, winrar_dir)) 
-                   for path in paths)
-
-    def book_to_extract(self, path):
-        return False
-
-    def extract(self, path):
-        print('extracting')
-
-
 class RARExtraction(ExtractionStrategy):
     @property
     def is_supported(self):
@@ -104,6 +81,44 @@ class RARExtraction(ExtractionStrategy):
     def extract(self, path):
         with rarfile.RarFile(path) as rar:
             rar.extractall(path=os.path.dirname(path))
+
+
+class WinRARExtraction(RARExtraction):
+    def init(self):
+        self._winrar_path = None
+        self.is_supported
+
+    @cached_property
+    def is_supported(self):
+        if platform.system() != 'Windows':
+            return False
+
+        winrar_dir = 'WinRAR'
+
+        paths = [
+            os.getenv('ProgramFiles'),
+            os.getenv('ProgramFiles(x86)'),
+        ]
+
+        for path in paths:
+            winrar_path = os.path.join(path, winrar_dir)
+            if os.path.exists(winrar_path):
+                self._winrar_path = winrar_path
+                return True
+
+        return False
+            
+    def book_to_extract(self, path):
+        self._wrap_unrar_tool()
+        return super().book_to_extract(path)
+
+    def extract(self, path):
+        self._wrap_unrar_tool()
+        return super().extract(path)
+
+    def _wrap_unrar_tool(self):
+        rarfile.UNRAR_TOOL = os.path.join(self._winrar_path, 'UnRAR.exe')
+        rarfile.CURRENT_SETUP = None
 
 
 class ZIPExtraction(ExtractionStrategy):
