@@ -11,7 +11,13 @@ Standards-Version: 3.9.1
 
 Package: unisul-sync-gui
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}, python3-pyqt5, python3-requests, python3-scrapy, python3-pip
+Depends: ${misc:Depends}, 
+         ${python3:Depends}, 
+         python3-pyqt5, 
+         python3-requests, 
+         python3-scrapy, 
+         python3-pip,
+         python3-rarfile
 Description: Synchronyze books from EVA system easily
 
 
