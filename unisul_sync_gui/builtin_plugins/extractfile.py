@@ -83,11 +83,29 @@ class ExtractionStrategy(abc.ABC):
 class RARExtraction(ExtractionStrategy):
     @property
     def is_supported(self):
-        try:
-            rarfile.tool_setup()
+        if rarfile.__version__ == '4.0':
+            try:
+                rarfile.tool_setup()
+            except rarfile.RarCannotExec:
+                return False
             return True
-        except rarfile.RarCannotExec:
-            return False
+
+        #
+        # handle old rarfile versions
+        #
+        available_tools = {
+            rarfile.UNRAR_TOOL: [],
+            rarfile.ALT_TOOL: rarfile.ALT_CHECK_ARGS,   # pylint: disable=E1101
+        }
+
+        for tool, check_args in available_tools.items():
+            try:
+                cmd = [tool] + list(check_args)
+                rarfile.custom_check(cmd, True) # pylint: disable=E1101
+                return True
+            except rarfile.RarCannotExec:
+                pass
+        return False
 
     def book_to_extract(self, path):
         return rarfile.is_rarfile(path)
