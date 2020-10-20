@@ -309,6 +309,8 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         return target_dir
 
     def _open_sync_target_dir(self):
+        self._maybe_show_choosing_dialog()
+
         dialog = QFileDialog(parent=self)
         dialog.setFileMode(QFileDialog.DirectoryOnly)
         
@@ -316,6 +318,14 @@ class Listing(QMainWindow, screen.Ui_Dialog):
             filenames = dialog.selectedFiles()
             if filenames:
                 return filenames[0]
+
+    @config.just_once
+    def _maybe_show_choosing_dialog(self):
+        msg = QMessageBox(parent=self)
+        msg.setIcon(QMessageBox.Information)
+        msg.setText('Ei, novata (o)!\nAgora você deve escolher aonde deseja salvar os documentos a serem sincronizados.')
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
     def _handle_long_select(self, current_index, last_index, data_list: set):
         rargs = [last_index, current_index]
