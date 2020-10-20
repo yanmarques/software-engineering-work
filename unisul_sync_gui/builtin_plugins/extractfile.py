@@ -1,5 +1,5 @@
 from ..app import context, cached_property, AppCtxt
-from ..config import load as cfg_load
+from ..config import just_once
 from ..sync.window import Listing
 from PyQt5.QtWidgets import QMessageBox
 import rarfile
@@ -179,14 +179,13 @@ class UnpackPlugin(ExtractListener):
     def init(self):
         context.signals.shown.connect(self._check_rar_support)
 
-    def _check_rar_support(self, sender):
-        if not isinstance(sender, Listing):
+    @just_once
+    def _check_rar_support(self, *args, **kwargs):
+        sender = kwargs.get('sender')
+        if not (sender or isinstance(sender, Listing)):
             return
 
-        config = cfg_load()
-
-        if config.get('first_time', True) and not any(obj.is_supported
-                   for obj in self.rar_extractors):
+        if not any(obj.is_supported for obj in self.rar_extractors):
             msg = QMessageBox(parent=sender)
             msg.setWindowTitle('Plugin - Extração de Arquivos')
             msg.setIcon(QMessageBox.Warning)
