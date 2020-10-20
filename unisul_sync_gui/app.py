@@ -1,4 +1,4 @@
-from . import config
+from . import config, signals
 from PyQt5.QtWidgets import QApplication
 
 import requests
@@ -25,11 +25,15 @@ class AppCtxt:
     def __init__(self):
         self._clear_config()
         self.windows = {}
-        self.app
+        self.app  
 
     @cached_property
     def app(self):
         return QApplication([])
+
+    @cached_property
+    def signals(self):
+        return signals._signals()
 
     @property
     def config(self):

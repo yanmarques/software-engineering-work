@@ -1,0 +1,2 @@
+#!/bin/sh
+python3 -c "from unisul_sync_gui import dist_util;dist_util.uninstall_weak_requirements()"

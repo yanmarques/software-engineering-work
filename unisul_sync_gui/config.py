@@ -1,4 +1,6 @@
 from . import settings
+
+import platform
 import json
 import os
 
@@ -25,7 +27,14 @@ def update(new_settings, no_load=False):
 
 
 def config_path():
-    return os.path.expanduser(settings.CONFIG_PATH)
+    platforms = {
+        'Windows': settings.WIN_CONFIG_PATH
+    }
+
+    path = platforms.get(platform.system(), 
+                         settings.CONFIG_PATH)
+
+    return os.path.expanduser(path)
 
 
 def config_name():
@@ -34,3 +43,11 @@ def config_name():
 
 def path_name_of(file_name):
     return os.path.join(config_path(), file_name)
+
+
+def just_once(fn):
+    def wrapper(*args, **kwargs):
+        cfg = load()
+        if cfg.get('first_time', False):
+            return fn(*args, **kwargs)
+    return wrapper

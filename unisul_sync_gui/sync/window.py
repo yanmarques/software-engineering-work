@@ -3,17 +3,60 @@ from unisul_sync_gui import config, spider
 from unisul_sync_gui.app import context, cached_property
 from unisul_sync_gui.book_bot.spiders import eva_parser, sync_spider
 from PyQt5.QtGui import QStandardItem
-from PyQt5.QtCore import QEvent, Qt
+from PyQt5.QtCore import QEvent, Qt, QThread, pyqtSignal
 from PyQt5.QtWidgets import (
     QMainWindow, 
     QApplication, 
     QAbstractItemView, 
     QFileDialog,
-    QMessageBox
+    QMessageBox,
+    QDialog,
+    QVBoxLayout,
+    QProgressBar,
 )
 
 import json
 import os
+
+
+class SpiderThread(QThread):
+    done = pyqtSignal()
+
+    def __init__(self, directory, sync_data):
+        super().__init__()
+        self.directory = directory
+        self.sync_data = sync_data
+
+    def run(self):
+        settings = {
+            'FILES_STORE': self.directory,
+            'CUSTOM_BOOKS': self.sync_data
+        }
+
+        spider.crawl(sync_spider.BookDownloaderSpider, 
+                     settings=settings,
+                     timeout=len(self.sync_data) * 30)
+
+        self.done.emit()
+
+
+class Loading(QDialog):
+    bump = pyqtSignal(int)
+
+    def __init__(self, parent=None):
+        super().__init__(parent=parent)
+        vbox = QVBoxLayout()
+        self.prog_bar = QProgressBar()
+        self.prog_bar.setMaximum(100)
+        self.prog_bar.setValue(0)
+        self.bump.connect(self._bump_progress)
+        vbox.addWidget(self.prog_bar)
+        self.setLayout(vbox)
+
+    def _bump_progress(self, increase):
+        curr_value = self.prog_bar.value()
+        self.prog_bar.setValue(curr_value + increase)
+
 
 class Listing(QMainWindow, screen.Ui_Dialog):
     def __init__(self, parent=None):
@@ -31,7 +74,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         # fetch and handle data
         self._fetch_and_load_subjects()
         self._fetch_books()
-        self._select_first_subject()
+        self.on_select_all(None)
 
         # signaling
         self.subject_listview.clicked.connect(self.on_subject_selected)
@@ -41,9 +84,11 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         self.logout_button.clicked.connect(self.on_logout)
 
         self.show()
+        context.signals.shown.emit(sender=self)
+        self.on_sync(None)
 
     def on_logout(self, event):
-        msg = QMessageBox()
+        msg = QMessageBox(parent=self)
         msg.setIcon(QMessageBox.Question)
         msg.setText('Tem certeza que deseja sair?')
         msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
@@ -74,7 +119,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
             sync_data.extend(selected_books)
 
         if not sync_data:
-            msg = QMessageBox()
+            msg = QMessageBox(parent=self)
             msg.setIcon(QMessageBox.Warning)
             msg.setText('Nenhum conteúdo selecionado. Por favor tente selecionar pelo menos 1.')
             msg.setStandardButtons(QMessageBox.Ok)
@@ -85,20 +130,28 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         if not directory:
             return
 
-        settings = {
-            'FILES_STORE': directory,
-            'CUSTOM_BOOKS': sync_data
-        }
+        loading = Loading(parent=self)
+        context.signals.syncing.emit(loader=loading,
+                                     count=len(sync_data))
 
-        spider.crawl(sync_spider.BookDownloaderSpider, 
-                     settings=settings,
-                     timeout=len(sync_data) * 3.5)
+        def on_done():
+            loading.close()
+            context.signals.synced.emit()
 
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Information)
-        msg.setText('Sincronização finalizada.')
-        msg.setStandardButtons(QMessageBox.Ok)
-        msg.exec_()
+            msg = QMessageBox(parent=self)
+            msg.setIcon(QMessageBox.Information)
+            msg.setText('Sincronização finalizada.')
+            msg.setStandardButtons(QMessageBox.Ok)
+            msg.exec_()
+            
+            self.setDisabled(False)
+
+        thread = SpiderThread(directory, sync_data)
+        thread.done.connect(on_done)
+        thread.start()
+
+        self.setDisabled(True)
+        loading.exec_()
 
     def on_select_all(self, event):
         should_select_all = not self.selected_subjects
@@ -223,11 +276,15 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         dir_from_cfg = context.config.get('sync_dir')
 
         if dir_from_cfg:
-            msg = QMessageBox()
+            msg = QMessageBox(parent=self)
             msg.setIcon(QMessageBox.Warning)
             msg.setText('Deseja continuar usando este diretório: \n{}'.format(dir_from_cfg))
-            msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-            if msg.exec_() == QMessageBox.No:
+            msg.setStandardButtons(QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
+            result = msg.exec_()
+            if result == QMessageBox.Cancel:
+                return
+
+            if result == QMessageBox.No:
                 dir_from_cfg = None
 
         target_dir = dir_from_cfg or self._open_sync_target_dir()
@@ -235,7 +292,7 @@ class Listing(QMainWindow, screen.Ui_Dialog):
         if target_dir:
             context.update_config({'sync_dir': target_dir})
             if not dir_from_cfg:
-                msg = QMessageBox()
+                msg = QMessageBox(parent=self)
                 msg.setIcon(QMessageBox.Information)
                 text = 'Vi aqui que você ainda não possui um diretório padrão.\n'
                 text += 'Então já me adiantei e salvei o diretório "{}" nas suas configurações.'
@@ -243,22 +300,32 @@ class Listing(QMainWindow, screen.Ui_Dialog):
                 msg.setStandardButtons(QMessageBox.Ok)
                 msg.exec_()    
         else:
-            msg = QMessageBox()
+            msg = QMessageBox(parent=self)
             msg.setIcon(QMessageBox.Warning)
-            msg.setText('Nenhum diretório para a sincronização foi especificado. Abortando')
+            msg.setText('Nenhum diretório para a sincronização selecionado.')
             msg.setStandardButtons(QMessageBox.Ok)
             msg.exec_()
 
         return target_dir
 
     def _open_sync_target_dir(self):
-        dialog = QFileDialog()
+        self._maybe_show_choosing_dialog()
+
+        dialog = QFileDialog(parent=self)
         dialog.setFileMode(QFileDialog.DirectoryOnly)
         
         if dialog.exec_():
             filenames = dialog.selectedFiles()
             if filenames:
                 return filenames[0]
+
+    @config.just_once
+    def _maybe_show_choosing_dialog(self):
+        msg = QMessageBox(parent=self)
+        msg.setIcon(QMessageBox.Information)
+        msg.setText('Ei, novata (o)!\nAgora você deve escolher aonde deseja salvar os documentos a serem sincronizados.')
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
     def _handle_long_select(self, current_index, last_index, data_list: set):
         rargs = [last_index, current_index]
@@ -280,15 +347,14 @@ class Listing(QMainWindow, screen.Ui_Dialog):
     def _fetch_books(self):
         exported_file = self._crawler_default_settings['BOOK_EXPORTER_URI']
         self.books = self._fetch_from_spider(eva_parser.BookSpider, 
-                                             exported_file, 
-                                             force_fetch=True)
+                                             exported_file)
 
     def _fetch_and_load_subjects(self):
         exported_file = self._crawler_default_settings['SUBJECT_EXPORTER_URI']
         self.subjects = self._fetch_from_spider(eva_parser.SubjectSpider, exported_file)
         self._load_subjects()
 
-    def _fetch_from_spider(self, spider_cls, exported_file, force_fetch=False):
+    def _fetch_from_spider(self, spider_cls, exported_file, force_fetch=True):
         exported_path = config.path_name_of(exported_file)
 
         if force_fetch or not os.path.exists(exported_path):

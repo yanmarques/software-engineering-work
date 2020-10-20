@@ -1,0 +1,23 @@
+Source: unisul-sync-gui
+Maintainer: Yan Marques de Cerqueira <marques_yan@outlook.com>
+Section: graphics
+Priority: optional
+Build-Depends: python3-setuptools, python3-all, debhelper (>= 7.4.3)
+Standards-Version: 3.9.1
+
+
+
+
+
+Package: unisul-sync-gui
+Architecture: all
+Depends: ${misc:Depends}, 
+         ${python3:Depends}, 
+         python3-pyqt5, 
+         python3-requests, 
+         python3-scrapy, 
+         python3-pip,
+         python3-rarfile
+Description: Synchronyze books from EVA system easily
+
+

@@ -69,6 +69,12 @@ class Book(NamedItem):
 
     qs_file_arg = 'arquivo'
 
+    @property
+    def path(self):
+        media_name = self['filename']
+        media_dir = self['subject']['name']
+        return os.path.join(media_dir, media_name)
+
     def __setitem__(self, key, value):
         super().__setitem__(key, value)
         if key == 'download_url' and self['download_url'] and not 'filename' in self:
