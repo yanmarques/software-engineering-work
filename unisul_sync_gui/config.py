@@ -43,3 +43,11 @@ def config_name():
 
 def path_name_of(file_name):
     return os.path.join(config_path(), file_name)
+
+
+def just_once(fn):
+    def wrapper(*args, **kwargs):
+        cfg = load()
+        if cfg.get('first_time', False):
+            return fn(*args, **kwargs)
+    return wrapper
