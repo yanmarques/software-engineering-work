@@ -90,7 +90,7 @@ setup(name='unisul-sync-gui',
       include_package_data=True,
       entry_points={
             'console_scripts': [
-                'unisul-sync-gui=unisul_sync_gui.cli:entrypoint',
+                'unisul-sync-gui=unisul_sync_gui.gui:show',
             ]
       },
       install_requires=deduce_install_requires(),

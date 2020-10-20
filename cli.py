@@ -1,4 +1,4 @@
-from . import gui
+from unisul_sync_gui import gui
 
 import sys
 
