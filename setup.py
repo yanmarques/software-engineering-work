@@ -4,6 +4,7 @@ from unisul_sync_gui.dist_util import (
     deduce_data_files,
     deduce_install_requires
 )
+from distutils.command import bdist_rpm
 from setuptools import setup, find_packages
 
 import shutil
@@ -23,7 +24,7 @@ except ImportError:
 
 
 def deduce_cmdclass():
-    cmdclass = {}
+    cmdclass = dict(custom_rpm=CustomRpm)
 
     if HAS_STDEB:
         cmdclass.update(custom_deb=CustomDeb,
@@ -55,7 +56,22 @@ if HAS_STDEB:
             # hacky solution to customize build
             sys.modules['stdeb'].util.process_command = wrapper
 
-            super().run() 
+            super().run()
+
+
+class CustomRpm(bdist_rpm.bdist_rpm):
+    def initialize_options(self):
+        super().initialize_options()
+        self.post_install = 'debian/postinst'
+        self.pre_uninstall = 'debian/prerm'
+        self.post_uninstall = 'debian/postrm'
+        self.requires = ' '.join([
+            'python3-qt5',
+            'python3-requests',
+            'python3-scrapy',
+            'python3-rarfile',
+            'python3-pip',
+        ])
 
 
 setup(name='unisul-sync-gui',
