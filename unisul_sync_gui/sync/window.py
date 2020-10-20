@@ -347,15 +347,14 @@ class Listing(QMainWindow, screen.Ui_Dialog):
     def _fetch_books(self):
         exported_file = self._crawler_default_settings['BOOK_EXPORTER_URI']
         self.books = self._fetch_from_spider(eva_parser.BookSpider, 
-                                             exported_file, 
-                                             force_fetch=True)
+                                             exported_file)
 
     def _fetch_and_load_subjects(self):
         exported_file = self._crawler_default_settings['SUBJECT_EXPORTER_URI']
         self.subjects = self._fetch_from_spider(eva_parser.SubjectSpider, exported_file)
         self._load_subjects()
 
-    def _fetch_from_spider(self, spider_cls, exported_file, force_fetch=False):
+    def _fetch_from_spider(self, spider_cls, exported_file, force_fetch=True):
         exported_path = config.path_name_of(exported_file)
 
         if force_fetch or not os.path.exists(exported_path):
