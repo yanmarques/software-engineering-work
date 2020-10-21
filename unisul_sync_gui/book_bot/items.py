@@ -41,7 +41,12 @@ def first_when_list(value):
 
 
 def parse_subject_name(name):
-    return name.split('-')[-1]
+    fragments = name.split('-')
+
+    # TODO does this cover all cases?
+    if 'AOL' in fragments[0]:
+        return fragments[-1]
+    return fragments[-2]
 
 
 def maybe_getattr(cls, name, default=None):
