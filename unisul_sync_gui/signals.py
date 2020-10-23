@@ -26,7 +26,3 @@ class _signals:
 
     landing = pysignal()
     landed = pysignal()
-    
-    item_completed = pysignal()
-    syncing = pysignal()
-    synced = pysignal()

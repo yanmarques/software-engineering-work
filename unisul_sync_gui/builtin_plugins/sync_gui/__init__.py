@@ -1,5 +1,5 @@
 from . import screen
-from ... import config, spider
+from ... import config, spider, signals
 from ...dashboard.window import Dashboard
 from ...book_bot.spiders import (
     eva_parser,
@@ -419,7 +419,18 @@ class DocsListing(screen.Ui_Tab):
 
 class SyncGuiPlugin:
     def __init__(self):
+        self._register_signals()
         context.signals.landing.connect(self.on_landing)
+
+    def _register_signals(self):
+        new_signals = [
+            'item_completed',
+            'syncing',
+            'synced',
+        ]
+
+        for signal in new_signals:
+            setattr(context.signals, signal, signals.pysignal())
 
     def on_landing(self, sender=None):
         assert sender is not None

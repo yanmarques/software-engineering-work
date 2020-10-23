@@ -17,6 +17,9 @@ class ExtractListener(abc.ABC):
         self._loader, self._count = None, 0
         self._index, self._per_bump = 0, 0
 
+        context.signals.started.connect(self.on_start)
+
+    def on_start(self):
         context.signals.item_completed.connect(self._on_item)
         context.signals.syncing.connect(self._set_loader)
 
