@@ -15,6 +15,10 @@ class Dashboard(QMainWindow, screen.Ui_MainWindow):
         self.logout_button.triggered.connect(self.on_logout)
 
         context.signals.landing.emit(sender=self)
+        
+        self.opts_menu.addAction(self.logout_button)
+        self.opts_menu.addAction(self.close_button)
+
         self.show()
         context.signals.landed.emit(sender=self)
 
