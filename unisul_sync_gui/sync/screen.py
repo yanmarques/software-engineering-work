@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'software-engineering-work/list_screen.ui'
+# Form implementation generated from reading ui file 'unisul_sync_gui/sync/interface.ui'
 #
 # Created by: PyQt5 UI code generator 5.13.1
 #
@@ -10,47 +10,50 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class Ui_Dialog(object):
-    def setupUi(self, Dialog):
-        Dialog.setObjectName("Dialog")
-        Dialog.resize(1000, 684)
-        self.logout_button = QtWidgets.QPushButton(Dialog)
-        self.logout_button.setGeometry(QtCore.QRect(900, 20, 91, 28))
+class Ui_MainWindow(object):
+    def setupUi(self, MainWindow):
+        MainWindow.setObjectName("MainWindow")
+        MainWindow.resize(583, 625)
+        self.centralwidget = QtWidgets.QWidget(MainWindow)
+        self.centralwidget.setObjectName("centralwidget")
+        self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
+        self.tabWidget.setGeometry(QtCore.QRect(0, 0, 581, 581))
+        self.tabWidget.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
+        self.tabWidget.setMovable(True)
+        self.tabWidget.setObjectName("tabWidget")
+        
+        MainWindow.setCentralWidget(self.centralwidget)
+        self.menubar = QtWidgets.QMenuBar(MainWindow)
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 583, 22))
+        self.menubar.setObjectName("menubar")
+        self.menuOp_es = QtWidgets.QMenu(self.menubar)
+        self.menuOp_es.setObjectName("menuOp_es")
+        MainWindow.setMenuBar(self.menubar)
+        self.statusbar = QtWidgets.QStatusBar(MainWindow)
+        self.statusbar.setObjectName("statusbar")
+        MainWindow.setStatusBar(self.statusbar)
+        self.settings_button = QtWidgets.QAction(MainWindow)
+        self.settings_button.setObjectName("settings_button")
+        self.logout_button = QtWidgets.QAction(MainWindow)
         self.logout_button.setObjectName("logout_button")
-        self.subject_listview = QtWidgets.QListView(Dialog)
-        self.subject_listview.setGeometry(QtCore.QRect(10, 70, 511, 601))
-        self.subject_listview.setObjectName("subject_listview")
-        self.subject_listview_model = QtGui.QStandardItemModel(self.subject_listview)
-        self.subject_listview.setModel(self.subject_listview_model)
-        self.sync_button = QtWidgets.QPushButton(Dialog)
-        self.sync_button.setGeometry(QtCore.QRect(490, 10, 101, 51))
-        self.sync_button.setObjectName("sync_button")
-        # self.search_input = QtWidgets.QLineEdit(Dialog)
-        # self.search_input.setGeometry(QtCore.QRect(100, 30, 281, 22))
-        # self.search_input.setObjectName("search_input")
-        # self.search_label = QtWidgets.QLabel(Dialog)
-        # self.search_label.setGeometry(QtCore.QRect(20, 30, 71, 16))
-        # self.search_label.setObjectName("search_label")
-        # self.search_button = QtWidgets.QPushButton(Dialog)
-        # self.search_button.setGeometry(QtCore.QRect(390, 30, 50, 24))
-        # self.search_button.setObjectName("search_button")
-        self.book_listview = QtWidgets.QListView(Dialog)
-        self.book_listview.setGeometry(QtCore.QRect(530, 70, 461, 601))
-        self.book_listview.setObjectName("book_listview")
-        self.book_listview_model = QtGui.QStandardItemModel(self.book_listview)
-        self.book_listview.setModel(self.book_listview_model)
-        self.select_all = QtWidgets.QPushButton(Dialog)
-        self.select_all.setGeometry(QtCore.QRect(610, 30, 140, 21))
-        self.select_all.setObjectName("select_all")
+        self.close_button = QtWidgets.QAction(MainWindow)
+        self.close_button.setObjectName("close_button")
+        self.menuOp_es.addAction(self.settings_button)
+        self.menuOp_es.addAction(self.logout_button)
+        self.menuOp_es.addAction(self.close_button)
+        self.menubar.addAction(self.menuOp_es.menuAction())
 
-        self.retranslateUi(Dialog)
-        QtCore.QMetaObject.connectSlotsByName(Dialog)
+        self.retranslateUi(MainWindow)
+        self.tabWidget.setCurrentIndex(0)
+        QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Unisul Sync"))
-        self.logout_button.setText(_translate("Dialog", "Logout"))
-        self.sync_button.setText(_translate("Dialog", "Sincronizar"))
-        # self.search_label.setText(_translate("Dialog", "Pesquisar"))
-        # self.search_button.setText(_translate("Dialog", "buscar"))
-        self.select_all.setText(_translate("Dialog", "(de)selecionar Tudo"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Tab 1"))
+        # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Tab 2"))
+        self.menuOp_es.setTitle(_translate("MainWindow", "Opções"))
+        self.settings_button.setText(_translate("MainWindow", "Configurações"))
+        self.logout_button.setText(_translate("MainWindow", "Logout"))
+        self.close_button.setText(_translate("MainWindow", "Fechar"))

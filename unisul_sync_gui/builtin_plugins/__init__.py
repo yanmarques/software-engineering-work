@@ -1,7 +1,8 @@
-from . import extractfile
+from . import extractfile, sync_gui
 
 
 def available_modules():
     return [
-        extractfile
+        extractfile,
+        sync_gui,
     ]
