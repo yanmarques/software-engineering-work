@@ -1,4 +1,5 @@
 from . import screen
+from ..util import PluginDispatch
 from ... import config, spider, signals
 from ...dashboard.window import Dashboard
 from ...book_bot.spiders import (
@@ -417,20 +418,16 @@ class DocsListing(screen.Ui_Tab):
         return spider._get_from_project()
 
 
-class SyncGuiPlugin:
-    def __init__(self):
-        self._register_signals()
+class SyncGuiPlugin(PluginDispatch):
+    def init(self):
         context.signals.landing.connect(self.on_landing)
 
-    def _register_signals(self):
-        new_signals = [
+    def signals(self):
+        return [
             'item_completed',
             'syncing',
             'synced',
         ]
-
-        for signal in new_signals:
-            setattr(context.signals, signal, signals.pysignal())
 
     def on_landing(self, sender=None):
         assert sender is not None

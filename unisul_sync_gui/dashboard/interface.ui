@@ -132,7 +132,6 @@
     <property name="title">
      <string>Opções</string>
     </property>
-    <addaction name="settings_button"/>
     <addaction name="logout_button"/>
     <addaction name="close_button"/>
    </widget>
@@ -151,12 +150,12 @@
   </action>
   <action name="logout_button">
    <property name="text">
-    <string>Fechar</string>
+    <string>Logout</string>
    </property>
   </action>
   <action name="close_button">
    <property name="text">
-    <string>Logout</string>
+    <string>Fechar</string>
    </property>
   </action>
  </widget>

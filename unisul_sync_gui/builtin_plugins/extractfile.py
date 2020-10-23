@@ -1,3 +1,4 @@
+from .util import PluginStarter
 from ..app import context, cached_property, AppCtxt
 from ..config import just_once
 from PyQt5.QtWidgets import QMessageBox
@@ -10,16 +11,8 @@ import traceback
 import platform
 
 
-class ExtractListener(abc.ABC):
-    def __init__(self):
-        self.init()
-        
-        self._loader, self._count = None, 0
-        self._index, self._per_bump = 0, 0
-
-        context.signals.started.connect(self.on_start)
-
-    def on_start(self):
+class ExtractListener(PluginStarter):
+    def start(self):
         context.signals.item_completed.connect(self._on_item)
         context.signals.syncing.connect(self._set_loader)
 
@@ -27,9 +20,9 @@ class ExtractListener(abc.ABC):
     def strategies(self):
         pass
 
-    # overwritable
     def init(self):
-        pass
+        self._loader, self._count = None, 0
+        self._index, self._per_bump = 0, 0
 
     def _set_loader(self, **kwargs):
         self._loader = kwargs.get('loader')
@@ -179,6 +172,7 @@ class UnpackPlugin(ExtractListener):
         ]
 
     def init(self):
+        super().init()
         context.signals.landed.connect(self.on_landed)
 
     def on_landed(self, sender=None):
