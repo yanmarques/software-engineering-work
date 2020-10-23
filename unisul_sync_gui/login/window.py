@@ -1,6 +1,7 @@
 from . import screen
-from unisul_sync_gui import sync, auth
-from unisul_sync_gui.app import context
+from .. import auth
+from ..app import context
+from ..dashboard.window import Dashboard
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from PyQt5.QtGui import QRegExpValidator
@@ -81,4 +82,4 @@ class Login(QMainWindow, screen.Ui_Dialog):
 
     def _handle_authenticated_window(self):
         self.close()
-        context.windows['subjects'] = sync.window.Listing()
+        context.windows['dashboard'] = Dashboard()

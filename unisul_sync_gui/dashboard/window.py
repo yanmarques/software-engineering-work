@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
 )
 
-class Listing(QMainWindow, screen.Ui_MainWindow):
+class Dashboard(QMainWindow, screen.Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -14,9 +14,9 @@ class Listing(QMainWindow, screen.Ui_MainWindow):
         # signaling
         self.logout_button.triggered.connect(self.on_logout)
 
-        context.signals.showing.emit(sender=self)
+        context.signals.landing.emit(sender=self)
         self.show()
-        context.signals.shown.emit(sender=self)
+        context.signals.landed.emit(sender=self)
 
     def on_logout(self, event):
         msg = QMessageBox(parent=self)

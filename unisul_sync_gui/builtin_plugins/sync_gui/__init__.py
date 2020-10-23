@@ -1,11 +1,11 @@
 from . import screen
 from ... import config, spider
+from ...dashboard.window import Dashboard
 from ...book_bot.spiders import (
     eva_parser,
     sync_spider
 )
 from ...app import context, cached_property
-from ...sync.window import Listing
 from PyQt5.QtGui import QStandardItem
 from PyQt5.QtCore import (
     QEvent,
@@ -419,22 +419,17 @@ class DocsListing(screen.Ui_Tab):
 
 class SyncGuiPlugin:
     def __init__(self):
-        self.tab = None
-        context.signals.showing.connect(self.on_showing)
+        context.signals.landing.connect(self.on_landing)
 
-    def on_showing(self, *args, **kwargs):
-        self.maybe_receive(self.add_tab, args, kwargs)
-
-    def maybe_receive(self, fn, args, kwargs):
-        sender = kwargs.get('sender')
-        if sender and isinstance(sender, Listing):
-            fn(sender)
-
-    def add_tab(self, listing: Listing):
-        tabWidget = listing.tabWidget
-        self.tab = DocsListing()
-        tabWidget.addTab(self.tab, "")
-        tabWidget.setTabText(tabWidget.indexOf(self.tab), 
+    def on_landing(self, sender=None):
+        assert sender is not None
+        self._add_tab(sender)
+    
+    def _add_tab(self, dashboard: Dashboard):
+        tabWidget = dashboard.tabWidget
+        tab = DocsListing()
+        tabWidget.addTab(tab, "")
+        tabWidget.setTabText(tabWidget.indexOf(tab), 
                           QCoreApplication.translate("MainWindow", "Midiateca"))
 
 

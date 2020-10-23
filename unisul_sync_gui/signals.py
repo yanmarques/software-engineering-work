@@ -23,6 +23,9 @@ class _signals:
 
     showing = pysignal()
     shown = pysignal()
+
+    landing = pysignal()
+    landed = pysignal()
     
     item_completed = pysignal()
     syncing = pysignal()
