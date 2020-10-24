@@ -1,4 +1,4 @@
-from . import screen, setting
+from . import screen, setting, loaders
 from ..util import PluginDispatch
 from ..settings import PluginTab
 from ... import config, spider, signals
@@ -76,6 +76,7 @@ class DocsListing(screen.Ui_Tab):
         self.setupUi()
         self.init()
         context.signals.showing.emit(sender=self)
+        context.signals.landed.connect(self.on_landed)
 
         self.show()
 
@@ -93,12 +94,18 @@ class DocsListing(screen.Ui_Tab):
         # fetch and handle data
         self._fetch_and_load_subjects()
         self._fetch_books()
-        self.on_select_all(None)
+
+        if context.config['sync_all_selected_on_open']:
+            self.on_select_all(None)
 
         # signaling
         self.sync_button.clicked.connect(self.on_sync)
         self.subject_listview.clicked.connect(self.on_subject_selected)
         self.book_listview.clicked.connect(self.on_book_selected)
+
+    def on_landed(self):
+        if context.config['sync_on_open']:
+            self.on_sync(None)
 
     def post_init(self):
         pass
@@ -344,27 +351,11 @@ class DocsListing(screen.Ui_Tab):
                 data_list.add(index)
         
     def _fetch_books(self):
-        exported_file = self._crawler_default_settings['BOOK_EXPORTER_URI']
-        self.books = self._fetch_from_spider(eva_parser.BookSpider, 
-                                             exported_file)
+        self.books = loaders.load_books()
 
     def _fetch_and_load_subjects(self):
-        exported_file = self._crawler_default_settings['SUBJECT_EXPORTER_URI']
-        self.subjects = self._fetch_from_spider(eva_parser.SubjectSpider, exported_file)
+        self.subjects = loaders.load_subjects()
         self._load_subjects()
-
-    def _fetch_from_spider(self, spider_cls, exported_file, force_fetch=True):
-        exported_path = config.path_name_of(exported_file)
-
-        if force_fetch or not os.path.exists(exported_path):
-            settings = {
-                'EXPORTER_DIR': config.config_path()
-            }
-
-            spider.crawl(spider_cls, settings=settings)
-
-        with open(exported_path, encoding='utf8') as io_reader:
-            return json.load(io_reader)
 
     def _select_first_subject(self):
         if not self.subjects:
@@ -413,10 +404,6 @@ class DocsListing(screen.Ui_Tab):
             item.setText(subj['name'])
             item.setToolTip(subj['class_id'])
             self.subject_listview_model.appendRow(item)
-
-    @cached_property
-    def _crawler_default_settings(self):
-        return spider._get_from_project()
 
 
 class SyncGuiPlugin(PluginDispatch, PluginTab):

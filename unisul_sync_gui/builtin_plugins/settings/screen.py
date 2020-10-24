@@ -58,9 +58,11 @@ class GenericTab(QtWidgets.QWidget):
         checkbox.stateChanged.connect(on_change_wrapper)
         return checkbox
 
-    def combobox(self, on_change, items, parent=None):
+    def combobox(self, on_change, items, parent=None, tooltips=[]):
         combobox = QtWidgets.QComboBox(parent=parent or self)
-        list(map(combobox.addItem, items))
+        combobox.addItems(items)
+        for index, tooltip in enumerate(tooltips):
+            combobox.setItemData(index, tooltip, QtCore.Qt.ToolTip)
         combobox.activated.connect(on_change)
         return combobox
 
@@ -76,7 +78,7 @@ class GenericTab(QtWidgets.QWidget):
     def rebuild(self):
         for _ in range(self.formLayout.rowCount()):
             self.formLayout.removeRow(0)
-        self.build_form()
+        self._build_form()
 
     def _build_form(self):
         for index, (label, field) in enumerate(self.config()):
