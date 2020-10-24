@@ -5,25 +5,40 @@ import json
 import os
 
 
-def load():
+def load(no_fixing=False):
     if not os.path.exists(config_name()):
         os.makedirs(config_path(), mode=0o700, exist_ok=True)
 
         # insert the default settings
-        update(settings.DEFAULT_CONFIG_SETTINGS, no_load=True)
+        update(settings.DEFAULT_CONFIG_SETTINGS, old_settings={})
+    elif not no_fixing:
+        old_settings = load(no_fixing=True)
+        fix_config(settings.DEFAULT_CONFIG_SETTINGS, 
+                   old_settings=old_settings)
 
     with open(config_name(), encoding='utf8') as io_reader:
         return json.load(io_reader)
 
 
-def update(new_settings, no_load=False):
-    old_settings = dict() if no_load else load()
+def update(new_settings, old_settings=None):
+    old_settings = old_settings or load()
     
     for k, v in new_settings.items():
         old_settings[k] = v
 
     with open(config_name(), 'w', encoding='utf8') as io_writer:
         json.dump(old_settings, io_writer, indent=4)
+
+
+def fix_config(default_settings, old_settings=None):
+    old_settings = old_settings or load()
+    to_update = {}
+
+    for key, default_value in default_settings.items():
+        if key not in old_settings:
+            to_update[key] = default_value
+
+    update(to_update, old_settings=old_settings)
 
 
 def config_path():
