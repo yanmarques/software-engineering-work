@@ -22,18 +22,16 @@ class GeneralTab(screen.GenericTab):
 
     def _rememberme(self):
         def on_change(self, state):
-            value = True if state == QtCore.Qt.Checked else False
-            context.update_config({'rememberme': value})
+            context.update_config({'rememberme': state})
 
         return (self.label('lembrar do login'),
                 self.checkbox(on_change, context.config['rememberme']))
 
     def _default_dashboard_tab(self):
         tab_widget = context.windows['dashboard'].tabWidget
-        tabs = []
-        for index in range(tab_widget.count()):
-            tab_text = tab_widget.tabText(index)
-            tabs.append(tab_text)
+
+        tabs = [tab_widget.tabText(index)
+                for index in range(tab_widget.count())]
 
         def on_change(index):
             context.update_config({'default_tab': index})
