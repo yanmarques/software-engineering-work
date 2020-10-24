@@ -281,18 +281,6 @@ class DocsListing(screen.Ui_Tab):
     def _sync_target_dir_or_fail(self):
         dir_from_cfg = context.config.get('sync_dir')
 
-        if dir_from_cfg:
-            msg = QMessageBox(parent=self)
-            msg.setIcon(QMessageBox.Warning)
-            msg.setText('Deseja continuar usando este diretório: \n{}'.format(dir_from_cfg))
-            msg.setStandardButtons(QMessageBox.Yes|QMessageBox.No|QMessageBox.Cancel)
-            result = msg.exec_()
-            if result == QMessageBox.Cancel:
-                return
-
-            if result == QMessageBox.No:
-                dir_from_cfg = None
-
         target_dir = dir_from_cfg or self._open_sync_target_dir()
         
         if target_dir:
