@@ -15,6 +15,7 @@ WIN_PLUGIN_PATHS = [
 
 DEFAULT_CONFIG_SETTINGS = {
     'rememberme': True,     # wheter to check user authentication parameters locally
+    'default_tab': 0,
     'crawler_settings': {},
 
     'first_time': True,

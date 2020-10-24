@@ -11,21 +11,60 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_Dialog(object):
-    def setupUi(self, Dialog):
+    def setupUi(self, Dialog, main_tab):
         Dialog.setObjectName("Dialog")
         Dialog.setWindowModality(QtCore.Qt.ApplicationModal)
         Dialog.resize(620, 424)
         self.tabWidget = QtWidgets.QTabWidget(Dialog)
         self.tabWidget.setGeometry(QtCore.QRect(10, 10, 601, 401))
         self.tabWidget.setObjectName("tabWidget")
-        self.app_tab = QtWidgets.QWidget()
-        self.app_tab.setObjectName("app_tab")
+        self.tabWidget.addTab(main_tab, "")
 
-        self.retranslateUi(Dialog)
+        self.retranslateUi(Dialog, main_tab)
         self.tabWidget.setCurrentIndex(0)
         QtCore.QMetaObject.connectSlotsByName(Dialog)
 
-    def retranslateUi(self, Dialog):
+    def retranslateUi(self, Dialog, main_tab):
         _translate = QtCore.QCoreApplication.translate
         Dialog.setWindowTitle(_translate("Dialog", "Configurações"))
-        self.tabWidget.setTabText(self.tabWidget.indexOf(self.app_tab), _translate("Dialog", "Geral"))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(main_tab), _translate("Dialog", "Geral"))
+
+
+class GenericTab(QtWidgets.QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setObjectName("general_tab")
+        self.formLayoutWidget = QtWidgets.QWidget(self)
+        self.formLayoutWidget.setGeometry(QtCore.QRect(10, 10, 581, 351))
+        self.formLayoutWidget.setObjectName("formLayoutWidget")
+        self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.formLayout.setHorizontalSpacing(35)
+        self.formLayout.setObjectName("formLayout")
+        self.build_form()
+
+    def label(self, text):
+        label = QtWidgets.QLabel(self)
+        label.setText(QtCore.QCoreApplication.translate('Dialog', text))
+        return label
+
+    def checkbox(self, on_change, initial_value=False):
+        checkbox = QtWidgets.QCheckBox(self)
+        checkbox.setChecked(initial_value)
+        checkbox.stateChanged.connect(on_change)
+        return checkbox
+
+    def combobox(self, on_change, items):
+        combobox = QtWidgets.QComboBox(self)
+        list(map(combobox.addItem, items))
+        combobox.activated.connect(on_change)
+        return combobox
+
+    def config(self):
+        return []
+
+    def build_form(self):
+        for index, (label, field) in enumerate(self.config()):
+            self.formLayout.setWidget(index, QtWidgets.QFormLayout.LabelRole, label)
+            self.formLayout.setWidget(index, QtWidgets.QFormLayout.FieldRole, field)
+        

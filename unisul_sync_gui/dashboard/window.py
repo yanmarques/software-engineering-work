@@ -18,6 +18,7 @@ class Dashboard(QMainWindow, screen.Ui_MainWindow):
         
         self.opts_menu.addAction(self.logout_button)
         self.opts_menu.addAction(self.close_button)
+        self.tabWidget.setCurrentIndex(context.config.get('default_tab', 0))
 
         self.show()
         context.signals.landed.emit(sender=self)
