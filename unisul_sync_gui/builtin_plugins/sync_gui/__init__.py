@@ -1,5 +1,6 @@
-from . import screen
+from . import screen, setting
 from ..util import PluginDispatch
+from ..settings import PluginTab
 from ... import config, spider, signals
 from ...dashboard.window import Dashboard
 from ...book_bot.spiders import (
@@ -418,9 +419,10 @@ class DocsListing(screen.Ui_Tab):
         return spider._get_from_project()
 
 
-class SyncGuiPlugin(PluginDispatch):
+class SyncGuiPlugin(PluginDispatch, PluginTab):
     def init(self):
         context.signals.landing.connect(self.on_landing)
+        config.fix_config(setting.default_settings)
 
     def signals(self):
         return [
@@ -429,16 +431,16 @@ class SyncGuiPlugin(PluginDispatch):
             'synced',
         ]
 
+    def setting_tab(self):
+        return ('Sync', setting.SyncTab())
+
     def on_landing(self, sender=None):
         assert sender is not None
-        self._add_tab(sender)
-    
-    def _add_tab(self, dashboard: Dashboard):
-        tabWidget = dashboard.tabWidget
-        tab = DocsListing()
-        tabWidget.addTab(tab, "")
-        tabWidget.setTabText(tabWidget.indexOf(tab), 
-                          QCoreApplication.translate("MainWindow", "Midiateca"))
+        self._add_dashboard_tab(sender)
+
+    def _add_dashboard_tab(self, dashboard: Dashboard):
+        tab_widget = dashboard.tabWidget
+        self.add_tab(tab_widget, 'Midiateca', DocsListing())
 
 
 plugin = SyncGuiPlugin

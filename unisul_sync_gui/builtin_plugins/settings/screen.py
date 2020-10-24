@@ -41,34 +41,48 @@ class GenericTab(QtWidgets.QWidget):
         self.formLayout.setContentsMargins(0, 0, 0, 0)
         self.formLayout.setHorizontalSpacing(35)
         self.formLayout.setObjectName("formLayout")
-        self.build_form()
+        self._build_form()
 
-    def label(self, text):
-        label = QtWidgets.QLabel(self)
-        label.setText(QtCore.QCoreApplication.translate('Dialog', text))
+    def label(self, text, parent=None):
+        label = QtWidgets.QLabel(parent=parent or self)
+        label.setText(self._translate(text))
         return label
 
-    def checkbox(self, on_change, initial_value=False):
+    def checkbox(self, on_change, initial_value=False, parent=None):
         def on_change_wrapper(state):
             value = True if state == QtCore.Qt.Checked else False
             on_change(value)
 
-        checkbox = QtWidgets.QCheckBox(self)
+        checkbox = QtWidgets.QCheckBox(parent=parent or self)
         checkbox.setChecked(initial_value)
         checkbox.stateChanged.connect(on_change_wrapper)
         return checkbox
 
-    def combobox(self, on_change, items):
-        combobox = QtWidgets.QComboBox(self)
+    def combobox(self, on_change, items, parent=None):
+        combobox = QtWidgets.QComboBox(parent=parent or self)
         list(map(combobox.addItem, items))
         combobox.activated.connect(on_change)
         return combobox
 
+    def button(self, on_click, text, parent=None):
+        button = QtWidgets.QToolButton(parent=parent or self)
+        button.clicked.connect(on_click)
+        button.setText(self._translate(text))
+        return button
+
     def config(self):
         return []
 
-    def build_form(self):
+    def rebuild(self):
+        for _ in range(self.formLayout.rowCount()):
+            self.formLayout.removeRow(0)
+        self.build_form()
+
+    def _build_form(self):
         for index, (label, field) in enumerate(self.config()):
             self.formLayout.setWidget(index, QtWidgets.QFormLayout.LabelRole, label)
             self.formLayout.setWidget(index, QtWidgets.QFormLayout.FieldRole, field)
+
+    def _translate(self, text):
+        return QtCore.QCoreApplication.translate('Dialog', text)
         

@@ -1,7 +1,28 @@
 from . import screen
-from ..util import PluginDispatch
+from ..util import PluginDispatch, PluginStarter
 from ...app import context
 from PyQt5 import QtWidgets, QtCore
+
+from typing import Tuple
+import abc
+
+
+class PluginTab(PluginStarter):
+    def start(self):
+        context.signals.settings_tab.connect(self.on_settings_tab)
+
+    def on_settings_tab(self, tab_widget=None):
+        assert tab_widget, 'Missing tab widget on event'
+        self.add_tab(tab_widget, *self.setting_tab())
+
+    @abc.abstractmethod
+    def setting_tab(self) -> Tuple[str, QtWidgets.QWidget]:
+        pass
+
+    def add_tab(self, tab_widget, text, tab, _context='MainWindow'):
+        tab_widget.addTab(tab, '')
+        translation = QtCore.QCoreApplication.translate(_context, text)
+        tab_widget.setTabText(tab_widget.indexOf(tab), translation)
 
 
 class Settings(QtWidgets.QDialog, screen.Ui_Dialog):

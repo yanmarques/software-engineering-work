@@ -1,7 +1,18 @@
 from ..app import context
 from ..signals import pysignal
+from PyQt5.QtWidgets import QFileDialog
 
 import abc
+
+
+def select_directory(parent=None):
+    dialog = QFileDialog(parent=parent)
+    dialog.setFileMode(QFileDialog.DirectoryOnly)
+    
+    if dialog.exec_():
+        directories = dialog.selectedFiles()
+        if directories:
+            return directories[0]
 
 
 class PluginStarter(abc.ABC):
