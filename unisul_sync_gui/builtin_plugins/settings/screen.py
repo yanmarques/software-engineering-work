@@ -49,9 +49,13 @@ class GenericTab(QtWidgets.QWidget):
         return label
 
     def checkbox(self, on_change, initial_value=False):
+        def on_change_wrapper(state):
+            value = True if state == QtCore.Qt.Checked else False
+            on_change(value)
+
         checkbox = QtWidgets.QCheckBox(self)
         checkbox.setChecked(initial_value)
-        checkbox.stateChanged.connect(on_change)
+        checkbox.stateChanged.connect(on_change_wrapper)
         return checkbox
 
     def combobox(self, on_change, items):
