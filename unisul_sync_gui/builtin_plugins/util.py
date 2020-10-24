@@ -6,6 +6,7 @@ import abc
 
 class PluginStarter(abc.ABC):
     def __init__(self):
+        super().__init__()
         context.signals.started.connect(self.start)
         self.init()
 
@@ -23,6 +24,7 @@ class SignalAlreadyExists(Exception):
 
 class PluginDispatch(abc.ABC):
     def __init__(self):
+        super().__init__()
         for signal in self.signals():
             if hasattr(context.signals, signal):
                 raise SignalAlreadyExists(f'Signal already exists in the context: {signal}')
