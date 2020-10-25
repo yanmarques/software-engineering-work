@@ -6,13 +6,31 @@ import abc
 
 
 def select_directory(parent=None):
+    return _select_files(QtWidgets.QFileDialog.DirectoryOnly, parent=parent)
+
+
+def select_file(parent=None, filename=None):
+    return _select_files(QtWidgets.QFileDialog.FileMode, 
+                         parent=parent,
+                         filename=filename)
+
+
+def _select_files(mode, 
+                  parent=None, 
+                  first=True, 
+                  filename=None):
     dialog = QtWidgets.QFileDialog(parent=parent)
-    dialog.setFileMode(QtWidgets.QFileDialog.DirectoryOnly)
-    
+    dialog.setFileMode(mode)
+    if filename:
+        dialog.selectFile(filename)
+
     if dialog.exec_():
-        directories = dialog.selectedFiles()
-        if directories:
-            return directories[0]
+        files = dialog.selectedFiles()
+        if not first:
+            return files
+
+        if files:
+            return files[0]
 
 
 def clear_layout(layout: QtWidgets.QLayout):

@@ -37,8 +37,18 @@ def deduce_install_requires():
     ]
 
     if not any(True for value in excludes if value in sys.argv):
-        defaults.extend(['PyQt5', 'requests', 'scrapy', 'rarfile'])
+        defaults.extend(hard_requirements())
     return defaults
+
+
+def hard_requirements():
+    return [
+        'PyQt5', 
+        'requests', 
+        'scrapy', 
+        'rarfile',
+        'packaging',
+    ]
 
 
 def weak_requirements():

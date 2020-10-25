@@ -71,6 +71,7 @@ class CustomRpm(bdist_rpm.bdist_rpm):
             'python3-scrapy',
             'python3-rarfile',
             'python3-pip',
+            'python3-packaging',
         ])
 
 

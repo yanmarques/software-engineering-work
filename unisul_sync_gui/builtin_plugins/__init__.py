@@ -1,4 +1,9 @@
-from . import extractfile, sync_gui, settings
+from . import (
+    extractfile, 
+    sync_gui, 
+    settings, 
+    updates,
+)
 
 
 def available_modules():
@@ -6,4 +11,5 @@ def available_modules():
         extractfile,
         sync_gui,
         settings,
+        updates,
     ]
