@@ -8,28 +8,18 @@ from ...book_bot.spiders import (
     sync_spider
 )
 from ...app import context, cached_property
-from PyQt5.QtGui import QStandardItem
-from PyQt5.QtCore import (
-    QEvent,
-    Qt,
-    QThread,
-    pyqtSignal,
-)
-from PyQt5.QtWidgets import (
-    QAbstractItemView,
-    QApplication,
-    QMessageBox,
-    QDialog,
-    QVBoxLayout,
-    QProgressBar,
+from PyQt5 import (
+    QtCore,
+    QtGui,
+    QtWidgets,
 )
 
 import json
 import os
 
 
-class SpiderThread(QThread):
-    done = pyqtSignal()
+class SpiderThread(QtCore.QThread):
+    done = QtCore.pyqtSignal()
 
     def __init__(self, directory, sync_data):
         super().__init__()
@@ -49,13 +39,13 @@ class SpiderThread(QThread):
         self.done.emit()
 
 
-class Loading(QDialog):
-    bump = pyqtSignal(int)
+class Loading(QtWidgets.QDialog):
+    bump = QtCore.pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
-        vbox = QVBoxLayout()
-        self.prog_bar = QProgressBar()
+        vbox = QtWidgets.QVBoxLayout()
+        self.prog_bar = QtWidgets.QProgressBar()
         self.prog_bar.setMaximum(100)
         self.prog_bar.setValue(0)
         self.bump.connect(self._bump_progress)
@@ -81,8 +71,8 @@ class DocsListing(screen.Ui_Tab):
         context.signals.shown.emit(sender=self)
 
     def init(self):
-        self.subject_listview.setEditTriggers(QAbstractItemView.NoEditTriggers)
-        self.book_listview.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.subject_listview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.book_listview.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         
         # control variables
         self.subjects, self.selected_subjects, self.books, self.selected_books, \
@@ -122,10 +112,10 @@ class DocsListing(screen.Ui_Tab):
             sync_data.extend(selected_books)
 
         if not sync_data:
-            msg = QMessageBox(parent=self)
-            msg.setIcon(QMessageBox.Warning)
+            msg = QtWidgets.QMessageBox(parent=self)
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
             msg.setText('Nenhum conteúdo selecionado. Por favor tente selecionar pelo menos 1.')
-            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msg.exec_()
             return
 
@@ -141,10 +131,10 @@ class DocsListing(screen.Ui_Tab):
             loading.close()
             context.signals.synced.emit()       # pylint: disable=E1101
 
-            msg = QMessageBox(parent=self)
-            msg.setIcon(QMessageBox.Information)
+            msg = QtWidgets.QMessageBox(parent=self)
+            msg.setIcon(QtWidgets.QMessageBox.Information)
             msg.setText('Sincronização finalizada.')
-            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msg.exec_()
             
             self.setDisabled(False)
@@ -175,7 +165,7 @@ class DocsListing(screen.Ui_Tab):
 
     def on_subject_selected(self, qtindex):
         index = qtindex.row()
-        modifiers = QApplication.keyboardModifiers()
+        modifiers = QtWidgets.QApplication.keyboardModifiers()
         
         # if modifiers == Qt.ShiftModifier:
         #     if self.subject_long_select is None:
@@ -193,7 +183,7 @@ class DocsListing(screen.Ui_Tab):
         #         self._load_subjects()
         #         self._load_books()
         
-        if modifiers == Qt.ControlModifier:
+        if modifiers == QtCore.Qt.ControlModifier:
             was_selected = index in self.selected_subjects
 
             # unselect when selected
@@ -283,18 +273,18 @@ class DocsListing(screen.Ui_Tab):
         if target_dir:
             context.update_config({'sync_dir': target_dir})
             if not dir_from_cfg:
-                msg = QMessageBox(parent=self)
-                msg.setIcon(QMessageBox.Information)
+                msg = QtWidgets.QMessageBox(parent=self)
+                msg.setIcon(QtWidgets.QMessageBox.Information)
                 text = 'Vi aqui que você ainda não possui um diretório padrão.\n'
                 text += 'Então já me adiantei e salvei o diretório "{}" nas suas configurações.'
                 msg.setText(text.format(target_dir))
-                msg.setStandardButtons(QMessageBox.Ok)
+                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
                 msg.exec_()    
         else:
-            msg = QMessageBox(parent=self)
-            msg.setIcon(QMessageBox.Warning)
+            msg = QtWidgets.QMessageBox(parent=self)
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
             msg.setText('Nenhum diretório para a sincronização selecionado.')
-            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msg.exec_()
 
         return target_dir
@@ -306,10 +296,10 @@ class DocsListing(screen.Ui_Tab):
 
     @config.just_once
     def _maybe_show_choosing_dialog(self):
-        msg = QMessageBox(parent=self)
-        msg.setIcon(QMessageBox.Information)
+        msg = QtWidgets.QMessageBox(parent=self)
+        msg.setIcon(QtWidgets.QMessageBox.Information)
         msg.setText('Ei, novata (o)!\nAgora você deve escolher aonde deseja salvar os documentos a serem sincronizados.')
-        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msg.exec_()
 
     def _handle_long_select(self, current_index, last_index, data_list: set):
@@ -366,9 +356,9 @@ class DocsListing(screen.Ui_Tab):
 
         # load new books into list
         for index, book in enumerate(self._current_books_cache):
-            item = QStandardItem()
+            item = QtGui.QStandardItem()
             if index in selected_books:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(QtCore.Qt.Checked)
             item.setText(book['name'])
             item.setToolTip(book['filename'])
             self.book_listview_model.appendRow(item)
@@ -377,9 +367,9 @@ class DocsListing(screen.Ui_Tab):
     def _load_subjects(self):
         self.subject_listview_model.clear()
         for index, subj in enumerate(self.subjects):
-            item = QStandardItem()
+            item = QtGui.QStandardItem()
             if index in self.selected_subjects:
-                item.setCheckState(Qt.Checked)
+                item.setCheckState(QtCore.Qt.Checked)
             item.setText(subj['name'])
             item.setToolTip(subj['class_id'])
             self.subject_listview_model.appendRow(item)

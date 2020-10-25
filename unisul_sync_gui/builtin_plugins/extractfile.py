@@ -1,7 +1,7 @@
 from .util import PluginStarter
 from ..app import context, cached_property, AppCtxt
 from ..config import just_once
-from PyQt5.QtWidgets import QMessageBox
+from PyQt5 import QtWidgets
 import rarfile
 
 import abc
@@ -182,16 +182,16 @@ class UnpackPlugin(ExtractListener):
     @just_once
     def _check_rar_support(self, dashboard):
         if not any(obj.is_supported for obj in self.rar_extractors):
-            msg = QMessageBox(parent=dashboard)
+            msg = QtWidgets.QMessageBox(parent=dashboard)
             msg.setWindowTitle('Plugin - Extração de Arquivos')
-            msg.setIcon(QMessageBox.Warning)
+            msg.setIcon(QtWidgets.QMessageBox.Warning)
             text = """
 Arquivos em formato Rar não suportados para extração.
 
 Para extrair arquivos em formato Rar baixe o programa apropriado.
 """
             msg.setText(text)
-            msg.setStandardButtons(QMessageBox.Ok)
+            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
             msg.exec_()
 
 

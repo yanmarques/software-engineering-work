@@ -2,11 +2,7 @@ from . import loaders
 from .. import util
 from ..settings import screen, SettingProvider
 from ...app import context
-from PyQt5.QtWidgets import (
-    QHBoxLayout, 
-    QWidget,
-)
-
+from PyQt5 import QtWidgets
 
 default_settings = {
     'sync_on_open': True,
@@ -38,8 +34,8 @@ class SyncOnOpen(SettingProvider):
 
 class SyncDir(SettingProvider):
     def init(self):
-        self.main_widget = self._widget(QWidget)
-        self.horizontal_layout = QHBoxLayout(self.main_widget)
+        self.main_widget = self._widget(QtWidgets.QWidget)
+        self.horizontal_layout = QtWidgets.QHBoxLayout(self.main_widget)
         self.horizontal_layout.setContentsMargins(0, 0, 0, 0)
         self.horizontal_layout.setSpacing(80)
         self._add_widgets()

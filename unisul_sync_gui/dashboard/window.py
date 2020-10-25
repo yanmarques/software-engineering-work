@@ -1,12 +1,10 @@
 from . import screen
 from unisul_sync_gui import config
 from unisul_sync_gui.app import context
-from PyQt5.QtWidgets import (
-    QMainWindow,   
-    QMessageBox,
-)
+from PyQt5 import QtWidgets
 
-class Dashboard(QMainWindow, screen.Ui_MainWindow):
+
+class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setupUi(self)
@@ -24,11 +22,11 @@ class Dashboard(QMainWindow, screen.Ui_MainWindow):
         context.signals.landed.emit(sender=self)
 
     def on_logout(self, event):
-        msg = QMessageBox(parent=self)
-        msg.setIcon(QMessageBox.Question)
+        msg = QtWidgets.QMessageBox(parent=self)
+        msg.setIcon(QtWidgets.QMessageBox.Question)
         msg.setText('Tem certeza que deseja sair?')
-        msg.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
-        if msg.exec_() == QMessageBox.Yes:
+        msg.setStandardButtons(QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
+        if msg.exec_() == QtWidgets.QMessageBox.Yes:
             login = context.windows['login'] 
             
             # actully logout, this invalidates the cookiejar stored in disk

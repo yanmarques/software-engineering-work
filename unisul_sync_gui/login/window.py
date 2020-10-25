@@ -2,14 +2,12 @@ from . import screen
 from .. import auth
 from ..app import context
 from ..dashboard.window import Dashboard
-from PyQt5.QtCore import QRegExp
-from PyQt5.QtWidgets import QMainWindow, QMessageBox
-from PyQt5.QtGui import QRegExpValidator
+from PyQt5 import QtCore, QtWidgets, QtGui
 
 
-class Login(QMainWindow, screen.Ui_Dialog):
+class Login(QtWidgets.QMainWindow, screen.Ui_Dialog):
     def __init__(self, ignore_disk_creds=False, parent=None):
-        super(QMainWindow, self).__init__(parent)
+        super().__init__(parent)
         self.setupUi(self)
 
         self.http_auth = auth.Authenticator()
@@ -54,10 +52,10 @@ class Login(QMainWindow, screen.Ui_Dialog):
     def on_failed(self):
         self.password_input.setText('')
     
-        msg = QMessageBox()
-        msg.setIcon(QMessageBox.Warning)
+        msg = QtWidgets.QMessageBox()
+        msg.setIcon(QtWidgets.QMessageBox.Warning)
         msg.setText('Usuário ou senha inválidos')
-        msg.setStandardButtons(QMessageBox.Ok)
+        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
         msg.exec_()
 
     def on_success(self):
@@ -65,7 +63,8 @@ class Login(QMainWindow, screen.Ui_Dialog):
         self._handle_authenticated_window()
     
     def _config_validator(self, input_widget):
-        empty_in_validator = QRegExpValidator(QRegExp(".+"), input_widget)
+        regex = QtCore.QRegExp(".+")
+        empty_in_validator = QtGui.QRegExpValidator(regex, input_widget)
         input_widget.setValidator(empty_in_validator)
 
     @property

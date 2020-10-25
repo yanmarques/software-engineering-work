@@ -1,5 +1,5 @@
 from . import config, signals
-from PyQt5.QtWidgets import QApplication
+from PyQt5 import QtWidgets
 
 import requests
 import functools
@@ -29,7 +29,7 @@ class AppCtxt:
 
     @cached_property
     def app(self):
-        return QApplication([])
+        return QtWidgets.QApplication([])
 
     @cached_property
     def signals(self):
