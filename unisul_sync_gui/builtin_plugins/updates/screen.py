@@ -31,7 +31,7 @@ class Ui_Dialog(object):
         self.loading_label = QtWidgets.QLabel(self.verticalLayoutWidget)
         self.loading_label.setMaximumSize(QtCore.QSize(100, 50))
         font = QtGui.QFont()
-        font.setPointSize(15)
+        font.setPointSize(30)
         self.loading_label.setFont(font)
         self.loading_label.setObjectName("loadingLabel")
         self.verticalLayout.addWidget(self.loading_label, 0, QtCore.Qt.AlignHCenter)
