@@ -1,5 +1,5 @@
 from . import screen, setting, loaders
-from ..util import PluginDispatch
+from ..util import PluginDispatch, select_directory
 from ..settings import PluginTab
 from ... import config, spider, signals
 from ...dashboard.window import Dashboard
@@ -14,13 +14,10 @@ from PyQt5.QtCore import (
     Qt,
     QThread,
     pyqtSignal,
-    QCoreApplication,
 )
 from PyQt5.QtWidgets import (
     QAbstractItemView,
-    QMainWindow, 
-    QApplication,  
-    QFileDialog,
+    QApplication,
     QMessageBox,
     QDialog,
     QVBoxLayout,
@@ -137,12 +134,12 @@ class DocsListing(screen.Ui_Tab):
             return
 
         loading = Loading(parent=self)
-        context.signals.syncing.emit(loader=loading,
+        context.signals.syncing.emit(loader=loading,        # pylint: disable=E1101
                                      count=len(sync_data))
 
         def on_done():
             loading.close()
-            context.signals.synced.emit()
+            context.signals.synced.emit()       # pylint: disable=E1101
 
             msg = QMessageBox(parent=self)
             msg.setIcon(QMessageBox.Information)
@@ -305,13 +302,7 @@ class DocsListing(screen.Ui_Tab):
     def _open_sync_target_dir(self):
         self._maybe_show_choosing_dialog()
 
-        dialog = QFileDialog(parent=self)
-        dialog.setFileMode(QFileDialog.DirectoryOnly)
-        
-        if dialog.exec_():
-            filenames = dialog.selectedFiles()
-            if filenames:
-                return filenames[0]
+        return select_directory(parent=self)
 
     @config.just_once
     def _maybe_show_choosing_dialog(self):

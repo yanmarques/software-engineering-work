@@ -95,8 +95,8 @@ class MostFrequentPredicate(FetchPredicate):
         return 'sempre'
 
     def description(self):
-        '''
-Sempre que aberto, serão baixadas as últimas atualizações do site da unisul
+        return '''
+Sempre que aberto, serão baixadas as últimas atualizações do site da unisul.
 '''
 
     def should_fetch(self):
@@ -108,9 +108,9 @@ class LeastFrequentPredicate(FetchPredicate):
         return 'nunca'
 
     def description(self):
-        '''
+        return '''
 Nunca uma atualização será baixada do site da unisul, sendo que apenas será mostrado
-as informações já encontradas no computador
+as informações já encontradas no computador.
 '''
 
     def should_fetch(self):

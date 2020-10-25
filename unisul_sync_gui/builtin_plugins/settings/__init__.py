@@ -1,5 +1,5 @@
 from . import screen
-from ..util import PluginDispatch, PluginStarter
+from ..util import PluginDispatch, PluginStarter, WidgetBuilder
 from ...app import context
 from PyQt5 import QtWidgets, QtCore
 
@@ -9,7 +9,7 @@ import abc
 
 class PluginTab(PluginStarter):
     def start(self):
-        context.signals.settings_tab.connect(self.on_settings_tab)
+        context.signals.settings_tab.connect(self.on_settings_tab)      # pylint: disable=E1101
 
     def on_settings_tab(self, tab_widget=None):
         assert tab_widget, 'Missing tab widget on event'
@@ -25,40 +25,78 @@ class PluginTab(PluginStarter):
         tab_widget.setTabText(tab_widget.indexOf(tab), translation)
 
 
+class SettingProvider(WidgetBuilder):
+    def __init__(self, parent):
+        super().__init__(parent=parent)
+        self.init()
+
+    def init(self):
+        pass
+
+    def fields(self):
+        self._raise_not_implemented('field')
+
+    @property
+    def provides(self):
+        self._raise_not_implemented('provides')
+
+    @property
+    def current_value(self):
+        return context.config[self.provides]
+
+    def update(self, value):
+        context.signals.settings_changing.emit(provider=self,   # pylint: disable=E1101
+                                            new_value=value)
+        context.update_config({self.provides: value})
+
+    def _raise_not_implemented(self, method):
+        class_name = self.__class__.__name__
+        raise NotImplementedError(f'Missing [{method}] method implementation at {class_name}.')
+
+    def _widget(self, widget_class, parent=None):
+        return widget_class(parent=parent or self.parent())
+
+
 class Settings(QtWidgets.QDialog, screen.Ui_Dialog):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setupUi(self, GeneralTab())
 
-        context.signals.settings_tab.emit(tab_widget=self.tabWidget)
+        context.signals.settings_tab.emit(tab_widget=self.tabWidget)    # pylint: disable=E1101
         self.exec_()
 
 
 class GeneralTab(screen.GenericTab):
     def config(self):
         return [
-            self._rememberme(),
-            self._default_dashboard_tab(),
+            RememberMeSetting,
+            DefaultDashboardTabSetting,
         ]
 
-    def _rememberme(self):
-        def on_change(self, state):
-            context.update_config({'rememberme': state})
 
+class RememberMeSetting(SettingProvider):
+    def fields(self):
         return (self.label('lembrar do login'),
-                self.checkbox(on_change, context.config['rememberme']))
+                self.checkbox(self.update, self.current_value))
 
-    def _default_dashboard_tab(self):
+    @property
+    def provides(self):
+        return 'rememberme'
+
+
+class DefaultDashboardTabSetting(SettingProvider):
+    def fields(self):
         tab_widget = context.windows['dashboard'].tabWidget
 
         tabs = [tab_widget.tabText(index)
                 for index in range(tab_widget.count())]
 
-        def on_change(index):
-            context.update_config({'default_tab': index})
-
         return (self.label('guia padrão na dashboard'), 
-                self.combobox(on_change, tabs))
+                self.combobox(self.update, tabs, index=self.current_value))
+
+    @property
+    def provides(self):
+        return 'default_tab'
 
 
 class SettingsGuiPlugin(PluginDispatch):
@@ -67,7 +105,8 @@ class SettingsGuiPlugin(PluginDispatch):
 
     def signals(self):
         return [
-            'settings_tab'
+            'settings_tab',
+            'settings_changing',
         ]
 
     def on_landing(self, sender=None):
