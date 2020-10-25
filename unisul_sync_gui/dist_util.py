@@ -48,6 +48,7 @@ def hard_requirements():
         'scrapy', 
         'rarfile',
         'packaging',
+        'distro',
     ]
 
 

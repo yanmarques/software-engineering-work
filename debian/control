@@ -17,7 +17,9 @@ Depends: ${misc:Depends},
          python3-requests, 
          python3-scrapy, 
          python3-pip,
-         python3-rarfile
+         python3-rarfile,
+         python3-packaging,
+         python3-distro
 Description: Synchronyze books from EVA system easily
 
 
