@@ -3,6 +3,7 @@ from . import (
     sync_gui, 
     settings, 
     updates,
+    help,
 )
 
 
@@ -12,4 +13,5 @@ def available_modules():
         sync_gui,
         settings,
         updates,
+        help,
     ]
