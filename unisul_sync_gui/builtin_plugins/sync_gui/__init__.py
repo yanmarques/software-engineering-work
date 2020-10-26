@@ -18,7 +18,7 @@ import json
 import os
 
 
-class SpiderThread(QtCore.QThread):
+class SyncSpiderThread(QtCore.QThread):
     done = QtCore.pyqtSignal()
 
     def __init__(self, directory, sync_data):
@@ -37,6 +37,18 @@ class SpiderThread(QtCore.QThread):
                      timeout=len(self.sync_data) * 30)
 
         self.done.emit()
+
+
+class GenericRunner(QtCore.QThread):
+    done = QtCore.pyqtSignal(object)
+
+    def __init__(self, callback):
+        super().__init__()
+        self._callback = callback
+
+    def run(self):
+        result = self._callback()
+        self.done.emit(result)
 
 
 class Loading(QtWidgets.QDialog):
@@ -65,6 +77,9 @@ class DocsListing(screen.Ui_Tab):
         context.signals.showing.emit(sender=self)
         context.signals.landed.connect(self.on_landed)
 
+        # use this variable to store threads
+        self.subjects_runner, self.books_runner = None, None
+
         self.show()
 
         self.post_init()
@@ -78,10 +93,6 @@ class DocsListing(screen.Ui_Tab):
         self.subjects, self.selected_subjects, self.books, self.selected_books, \
             self._current_books_cache = list(), set(), list(), dict(), tuple()
 
-        # fetch and handle data
-        self._fetch_and_load_subjects()
-        self._fetch_books()
-
         # signaling
         self.sync_button.clicked.connect(self.on_sync)
         self.subject_listview.clicked.connect(self.on_subject_selected)
@@ -92,11 +103,15 @@ class DocsListing(screen.Ui_Tab):
         self.select_all_shortcut.activated.connect(self.on_select_all)
 
     def on_landed(self):
-        if context.config['sync_on_open']:
-            self.on_sync(None)
+        def on_load_done():
+            if context.config['sync_on_open']:
+                self.on_sync(None)
 
-        if context.config['sync_all_selected_on_open']:
-            self.on_select_all()
+            if context.config['sync_all_selected_on_open']:
+                self.on_select_all()
+
+        # fetch and handle data
+        self.refresh_subjects_and_books(load_done=on_load_done)
 
     def post_init(self):
         pass
@@ -139,7 +154,7 @@ class DocsListing(screen.Ui_Tab):
             
             self.setDisabled(False)
 
-        thread = SpiderThread(directory, sync_data)
+        thread = SyncSpiderThread(directory, sync_data)
         thread.done.connect(on_done)
         thread.start()
 
@@ -311,12 +326,27 @@ class DocsListing(screen.Ui_Tab):
             else:
                 data_list.add(index)
         
-    def _fetch_books(self):
-        self.books = loaders.load_books()
+    def refresh_subjects_and_books(self, load_done=None):
+        def on_books_done(books):
+            self.books = books
+            self.book_listview.setDisabled(False)
+            self.subject_listview.setDisabled(False)
 
-    def _fetch_and_load_subjects(self):
-        self.subjects = loaders.load_subjects()
-        self._load_subjects()
+            if load_done:
+                load_done()
+
+        def on_subjects_done(subjects):
+            self.subjects = subjects
+            self._load_subjects()
+            self.books_runner = GenericRunner(loaders.load_books)
+            self.books_runner.done.connect(on_books_done)
+            self.books_runner.start()
+
+        self.subject_listview.setDisabled(True)
+        self.book_listview.setDisabled(True)
+        self.subjects_runner = GenericRunner(loaders.load_subjects)
+        self.subjects_runner.done.connect(on_subjects_done)
+        self.subjects_runner.start()
 
     def _select_first_subject(self):
         if not self.subjects:
