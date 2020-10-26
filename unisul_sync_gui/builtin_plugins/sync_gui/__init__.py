@@ -83,12 +83,16 @@ class DocsListing(screen.Ui_Tab):
         self._fetch_books()
 
         if context.config['sync_all_selected_on_open']:
-            self.on_select_all(None)
+            self.on_select_all()
 
         # signaling
         self.sync_button.clicked.connect(self.on_sync)
         self.subject_listview.clicked.connect(self.on_subject_selected)
         self.book_listview.clicked.connect(self.on_book_selected)
+
+        key_sequence = QtGui.QKeySequence('Ctrl+A')
+        self.select_all_shortcut = QtWidgets.QShortcut(key_sequence, self)
+        self.select_all_shortcut.activated.connect(self.on_select_all)
 
     def on_landed(self):
         if context.config['sync_on_open']:
@@ -146,7 +150,7 @@ class DocsListing(screen.Ui_Tab):
         self.setDisabled(True)
         loading.exec_()
 
-    def on_select_all(self, event):
+    def on_select_all(self):
         should_select_all = not self.selected_subjects
 
         # clear all
