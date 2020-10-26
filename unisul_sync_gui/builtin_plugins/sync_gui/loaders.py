@@ -7,16 +7,16 @@ import abc
 import json
 
 
-def load_subjects():
+def load_subjects(**kwargs):
     pred_key = context.config['sync_subject_frequency']
     predicate = find_available_pred(pred_key)
-    return SubjectMediaLoader(predicate).load()
+    return SubjectMediaLoader(predicate).load(**kwargs)
 
 
-def load_books():
+def load_books(**kwargs):
     pred_key = context.config['sync_subject_frequency']
     predicate = find_available_pred(pred_key)
-    return BookMediaLoader(predicate).load()
+    return BookMediaLoader(predicate).load(**kwargs)
 
 
 def find_available_pred(key):
@@ -42,10 +42,10 @@ class BaseMediaLoader(abc.ABC):
         super().__init__()
         self.predicate = predicate
 
-    def load(self):
+    def load(self, force=False):
         spider_cls, filename = self.load_config()
 
-        if self.predicate.should_fetch():
+        if force or self.predicate.should_fetch():
             self._fetch_from_spider(spider_cls, filename)
 
         path = config.path_name_of(filename)
