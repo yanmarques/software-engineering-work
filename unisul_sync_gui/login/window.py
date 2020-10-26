@@ -5,7 +5,7 @@ from ..dashboard.window import Dashboard
 from PyQt5 import QtCore, QtWidgets, QtGui
 
 
-class Login(QtWidgets.QMainWindow, screen.Ui_Dialog):
+class Login(QtWidgets.QDialog, screen.Ui_Dialog):
     def __init__(self, ignore_disk_creds=False, parent=None):
         super().__init__(parent)
         self.setupUi(self)
