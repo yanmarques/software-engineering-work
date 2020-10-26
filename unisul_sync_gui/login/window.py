@@ -1,6 +1,7 @@
 from . import screen
 from .. import auth
 from ..app import context
+from ..builtin_plugins import util
 from ..dashboard.window import Dashboard
 from PyQt5 import QtCore, QtWidgets, QtGui
 
@@ -9,6 +10,7 @@ class Login(QtWidgets.QDialog, screen.Ui_Dialog):
     def __init__(self, ignore_disk_creds=False, parent=None):
         super().__init__(parent)
         self.setupUi(self)
+        self.user_input.setFocus(QtCore.Qt.NoFocusReason)
 
         self.http_auth = auth.Authenticator()
 
@@ -33,39 +35,53 @@ class Login(QtWidgets.QDialog, screen.Ui_Dialog):
         # when we could login from credentials in disk
         if not ignore_disk_creds and self._handle_disk_creds():
             return
+
+        # maybe fill user when exists
+        credentials = auth.load_keys()
+        if credentials:
+            self.user_input.setText(credentials[0])
+            self.password_input.setText(credentials[1])
+
+        # use here to store login qthread
+        self.login_runner = None
+            
         self.show()
             
     def on_login_enter(self, event=None):
         login = self.user_input.text()
         password = self.password_input.text()
-        
-        if self.http_auth.with_creds(login, 
-                                    password, 
-                                    rememberme=self._rememberme):
-            self.on_success()
-        else:
-            self.on_failed()
+
+        def on_login_done(logged_in):
+            if logged_in:
+                self.on_success()
+            else:
+                self.setDisabled(False)
+                self.on_failed()
+
+        self.setDisabled(True)
+        self.login_runner = util.GenericCallbackRunner(self.http_auth.with_creds)
+        self.login_runner._args = (login, password)
+        self.login_runner._kwargs = dict(rememberme=self._rememberme)
+        self.login_runner.done.connect(on_login_done)
+        self.login_runner.start()
 
     def on_rememberme_changed(self, event):
         context.update_config(dict(rememberme=self._rememberme))
 
     def on_failed(self):
-        self.password_input.setText('')
+        self.password_input.clear()
     
-        msg = QtWidgets.QMessageBox()
-        msg.setIcon(QtWidgets.QMessageBox.Warning)
-        msg.setText('Usuário ou senha inválidos')
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        msg.exec_()
+        util.show_dialog('E-mail ou senha inválidos',
+                         icon=QtWidgets.QMessageBox.Warning,
+                         parent=self)
 
     def on_success(self):
-        print('Haha man')
         self._handle_authenticated_window()
     
     def _config_validator(self, input_widget):
         regex = QtCore.QRegExp(".+")
-        empty_in_validator = QtGui.QRegExpValidator(regex, input_widget)
-        input_widget.setValidator(empty_in_validator)
+        non_empty = QtGui.QRegExpValidator(regex, input_widget)
+        input_widget.setValidator(non_empty)
 
     @property
     def _rememberme(self):

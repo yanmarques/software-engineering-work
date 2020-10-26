@@ -42,17 +42,9 @@ class Authenticator:
         return self._set_status(False)
 
     def try_from_disk(self):
-        if not os.path.exists(auth_name()):
-            return self._set_status(False)
-
-        with open(auth_name(), encoding='utf8') as io_reader:
-            auth_data = json.load(io_reader).values()
-
-            # stop here if we got an unexpected format
-            if len(auth_data) != 2:
-                return self._set_status(False)
-
-        return self.with_creds(*auth_data)
+        credentials = load_keys()
+        if credentials:
+            return self.with_creds(*credentials)
 
     def logout(self):
         result = spider.crawl(eva_auth.LogoutSpider)
@@ -78,6 +70,18 @@ def dump_keys(username, password):
     with open(auth_name(), 'w', encoding='utf8') as io_writer:
         json.dump({'username': username, 'password': password}, io_writer, indent=4)
     os.chmod(auth_name(), 0o600)
+
+
+def load_keys():
+    if not os.path.exists(auth_name()):
+        return None
+
+    with open(auth_name(), encoding='utf8') as io_reader:
+        auth_data = json.load(io_reader)
+
+    credentials = auth_data.get('username'), auth_data.get('password')
+    if all(credentials):
+        return credentials
 
 
 def auth_name():

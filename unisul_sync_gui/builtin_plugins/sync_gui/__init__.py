@@ -39,20 +39,6 @@ class SyncSpiderThread(QtCore.QThread):
         self.done.emit()
 
 
-class GenericRunner(QtCore.QThread):
-    done = QtCore.pyqtSignal(object)
-
-    def __init__(self, callback, *args, **kwargs):
-        super().__init__()
-        self._callback = callback
-        self._args = args
-        self._kwargs = kwargs
-
-    def run(self):
-        result = self._callback(*self._args, **self._kwargs)
-        self.done.emit(result)
-
-
 class Loading(QtWidgets.QDialog):
     bump = QtCore.pyqtSignal(int)
 
@@ -345,13 +331,15 @@ class DocsListing(screen.Ui_Tab):
         def on_subjects_done(subjects):
             self.subjects = subjects
             self._load_subjects()
-            self.books_runner = GenericRunner(loaders.load_books, **kwargs)
+            self.books_runner = util.GenericCallbackRunner(loaders.load_books, 
+                                                           **kwargs)
             self.books_runner.done.connect(on_books_done)
             self.books_runner.start()
 
         self.subject_listview.setDisabled(True)
         self.book_listview.setDisabled(True)
-        self.subjects_runner = GenericRunner(loaders.load_subjects, **kwargs)
+        self.subjects_runner = util.GenericCallbackRunner(loaders.load_subjects, 
+                                                          **kwargs)
         self.subjects_runner.done.connect(on_subjects_done)
         self.subjects_runner.start()
 

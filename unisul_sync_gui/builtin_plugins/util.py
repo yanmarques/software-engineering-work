@@ -54,6 +54,20 @@ def clear_layout(layout: QtWidgets.QLayout):
         layout.itemAt(0).widget().setParent(None)
 
 
+class GenericCallbackRunner(QtCore.QThread):
+    done = QtCore.pyqtSignal(object)
+
+    def __init__(self, callback, *args, **kwargs):
+        super().__init__()
+        self._callback = callback
+        self._args = args
+        self._kwargs = kwargs
+
+    def run(self):
+        result = self._callback(*self._args, **self._kwargs)
+        self.done.emit(result)
+
+
 class WidgetBuilder(QtWidgets.QWidget):
     def label(self, text, parent=None):
         label = self._widget(QtWidgets.QLabel, parent)
