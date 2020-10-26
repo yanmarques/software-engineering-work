@@ -39,7 +39,7 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Unisul Sync | Login"))
+        Dialog.setWindowTitle(_translate("Dialog", "UnisulSync | Login"))
         self.user_label.setText(_translate("Dialog", "Usuario"))
         self.password_label.setText(_translate("Dialog", "Senha"))
         self.remember_checkbox.setText(_translate("Dialog", "Lembrar-me"))
