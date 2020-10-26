@@ -33,7 +33,9 @@ class Ui_Tab(QtWidgets.QWidget):
         self.horizontalLayout.setObjectName("horizontalLayout")
 
         self.refresh_button = QtWidgets.QPushButton(self)
-        self.refresh_button.setIcon(QtGui.QIcon.fromTheme('view-refresh'))
+        refresh_button_fallback_icon = self.style().standardIcon(QtWidgets.QStyle.SP_BrowserReload)
+        self.refresh_button.setIcon(QtGui.QIcon.fromTheme('view-refresh', 
+                                                          refresh_button_fallback_icon))
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(False)
@@ -45,7 +47,8 @@ class Ui_Tab(QtWidgets.QWidget):
         self.horizontalLayout.addWidget(self.refresh_button)
 
         self.sync_button = QtWidgets.QPushButton(self)
-        self.sync_button.setIcon(QtGui.QIcon.fromTheme('document-save'))
+        sync_btn_fallback_icon = self.style().standardIcon(QtWidgets.QStyle.SP_DialogSaveButton)
+        self.sync_button.setIcon(QtGui.QIcon.fromTheme('document-save', sync_btn_fallback_icon))
         font = QtGui.QFont()
         font.setPointSize(11)
         font.setBold(False)
