@@ -16,6 +16,8 @@ class Ui_Dialog(object):
         Dialog.setObjectName("Dialog")
         Dialog.setWindowModality(QtCore.Qt.ApplicationModal)
         Dialog.resize(620, 424)
+        self.gridLayout = QtWidgets.QGridLayout(Dialog)
+        self.gridLayout.setObjectName("gridLayout")
         self.tabWidget = QtWidgets.QTabWidget(Dialog)
         self.tabWidget.setGeometry(QtCore.QRect(10, 10, 601, 401))
         self.tabWidget.setObjectName("tabWidget")
@@ -35,13 +37,12 @@ class GenericTab(util.WidgetBuilder):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setObjectName("genericTab")
-        self.formLayoutWidget = QtWidgets.QWidget(self)
-        self.formLayoutWidget.setGeometry(QtCore.QRect(10, 10, 581, 351))
-        self.formLayoutWidget.setObjectName("formLayoutWidget")
-        self.formLayout = QtWidgets.QFormLayout(self.formLayoutWidget)
+        self.gridLayout = QtWidgets.QGridLayout(self)
+        self.formLayout = QtWidgets.QFormLayout()
         self.formLayout.setContentsMargins(0, 0, 0, 0)
         self.formLayout.setHorizontalSpacing(35)
         self.formLayout.setObjectName("formLayout")
+        self.gridLayout.addLayout(self.formLayout, 0, 0, 1, 1)
         self.rebuild()
 
     def config(self) -> list:
@@ -53,7 +54,7 @@ class GenericTab(util.WidgetBuilder):
 
     def _build_form(self):
         for index, provider_class in enumerate(self.config()):
-            provider = provider_class(self.formLayoutWidget)
+            provider = provider_class(self)
             label, field = provider.fields()
             self.formLayout.setWidget(index, QtWidgets.QFormLayout.LabelRole, label)
             self.formLayout.setWidget(index, QtWidgets.QFormLayout.FieldRole, field)

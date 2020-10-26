@@ -63,6 +63,7 @@ class Settings(QtWidgets.QDialog, screen.Ui_Dialog):
         self.setupUi(self, GeneralTab())
 
         context.signals.settings_tab.emit(tab_widget=self.tabWidget)    # pylint: disable=E1101
+        self.gridLayout.addWidget(self.tabWidget)
         self.exec_()
 
 
