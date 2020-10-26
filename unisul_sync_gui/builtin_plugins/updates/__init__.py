@@ -142,6 +142,24 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
 
         downloader = self.update_checker.build_downloader(None)
         webbrowser.open(downloader.url)
+        self._show_update_instructions(asset_name)
+        
+        keep_using = widgets.ConfirmationMessageBox(default_accept=False)
+        keep_using.setText(texts.keep_using_after_update_downloaded)
+        if not keep_using.is_accepted():
+            # get the hell out
+            context.exit()
+
+    def _show_update_instructions(self, asset_name):
+        instructions = {
+            checker.WINDOWS_ASSET: texts.windows_update_instructions,
+            checker.DEBIAN_ASSET: texts.deb_update_instructions,
+            checker.RPM_ASSET: texts.rpm_update_instructions,
+        }
+
+        text = instructions[asset_name]
+        util.show_dialog(text,
+                         icon=QtWidgets.QMessageBox.Information)
 
     def _check_system_availability(self):
         try:

@@ -3,6 +3,7 @@ from PyQt5 import QtWidgets
 
 import requests
 import functools
+import sys
 import os
 
 
@@ -52,6 +53,10 @@ class AppCtxt:
     def update_config(self, new_settings):
         config.update(new_settings)
         self._clear_config()
+
+    def exit(self, returncode = 0):
+        self.windows = {}
+        sys.exit(returncode)
 
     def _clear_config(self):
         self._config = None
