@@ -1,5 +1,5 @@
 from . import setting, checker, screen, texts
-from .. import util
+from .. import util, help
 from ..settings import PluginTab
 from ... import config, widgets
 from ...app import context
@@ -102,6 +102,8 @@ class LoadingPoints(QtCore.QThread):
 
 
 class UpdateUserInterface(QtWidgets.QDialog, screen.Ui_Dialog):
+    no_updates = QtCore.pyqtSignal()
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.setupUi(self)
@@ -113,13 +115,14 @@ class UpdateUserInterface(QtWidgets.QDialog, screen.Ui_Dialog):
         self.checker_runner = UpdateCheckerRunnable()
         self.checker_runner.done.connect(self._on_update_check)
         self.checker_runner.start()
-        self.exec_()
 
     def _on_update_check(self, has_updates):
         self.loading.do_stop.emit()
 
         if has_updates:
             DownloadLatestVersion(self.checker_runner.update_checker)
+        else:
+            self.no_updates.emit()
 
 
 class DownloadLatestVersion(widgets.ConfirmationMessageBox):
@@ -167,15 +170,29 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
 
 class UpdatesPlugin(PluginTab):
     def init(self):
+        # we can safely connect to this custom signal here
+        context.signals.help_menu.connect(self.add_menu_action)     # pylint: disable=E1101
+
         config.fix_config(setting.default_settings)
         if context.config['check_updates_on_open']:
-            self.check_for_updates()
+            UpdateUserInterface().exec_()
+
+    def add_menu_action(self, menu: help.HelpMenu = None):
+        check_update_act = QtWidgets.QAction(menu)
+        check_update_act.setText('Verificar atualizações')
+        check_update_act.triggered.connect(self.check_for_updates)
+        menu.addAction(check_update_act)
 
     def check_for_updates(self):
-        UpdateUserInterface()
+        update_ui = UpdateUserInterface()
+        update_ui.no_updates.connect(self._on_fully_updated)
+        update_ui.exec_()
             
     def setting_tab(self):
         return 'Atualizações', setting.UpdateSettingsTab()
+
+    def _on_fully_updated(self):
+        util.show_dialog('Atualizações', texts.already_updated)
 
 
 plugin = UpdatesPlugin

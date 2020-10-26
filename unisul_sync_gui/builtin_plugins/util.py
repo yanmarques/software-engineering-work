@@ -33,6 +33,14 @@ def _select_files(mode,
             return files[0]
 
 
+def show_dialog(window_title, body):
+    msg = QtWidgets.QMessageBox()
+    msg.setText(msg.tr(body))
+    msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
+    msg.setWindowTitle(msg.tr(window_title))
+    msg.exec_()
+
+
 def clear_layout(layout: QtWidgets.QLayout):
     if isinstance(layout, QtWidgets.QFormLayout):
         count = layout.rowCount()

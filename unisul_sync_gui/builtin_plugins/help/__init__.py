@@ -23,7 +23,7 @@ class HelpMenu(QtWidgets.QMenu):
         self.setObjectName("helpMenu")
         self.setTitle(self.tr('Ajuda'))
 
-        context.signals.help_menu.emit(self)        # pylint: disable=E1101
+        context.signals.help_menu.emit(menu=self)        # pylint: disable=E1101
 
         self.about_action = QtWidgets.QAction()
         self.about_action.setText(self.tr('Sobre'))
