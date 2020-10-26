@@ -3,7 +3,7 @@ from .. import util, help
 from ..settings import PluginTab
 from ... import config, widgets
 from ...app import context
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 import distro
 import webbrowser
@@ -179,6 +179,7 @@ class UpdatesPlugin(PluginTab):
 
     def add_menu_action(self, menu: help.HelpMenu = None):
         check_update_act = QtWidgets.QAction(menu)
+        check_update_act.setIcon(QtGui.QIcon.fromTheme('system-software-update'))
         check_update_act.setText('Verificar atualizações')
         check_update_act.triggered.connect(self.check_for_updates)
         menu.addAction(check_update_act)

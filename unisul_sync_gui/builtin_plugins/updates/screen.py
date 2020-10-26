@@ -41,5 +41,5 @@ class Ui_Dialog(object):
 
     def retranslateUi(self, Dialog):
         _translate = QtCore.QCoreApplication.translate
-        Dialog.setWindowTitle(_translate("Dialog", "Dialog"))
+        Dialog.setWindowTitle(_translate("Dialog", "UnisulSync | Atualizações"))
         self.label.setText(_translate("Dialog", "Buscando atualizações"))

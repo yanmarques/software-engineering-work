@@ -1,7 +1,7 @@
 from . import screen
 from ..util import PluginDispatch, PluginStarter, WidgetBuilder
 from ...app import context
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 from typing import Tuple
 import abc
@@ -118,7 +118,8 @@ class SettingsGuiPlugin(PluginDispatch):
     def _get_button(self, parent):
         button = QtWidgets.QAction(parent=parent)
         button.setObjectName('settings_button')
-        button.setText(QtCore.QCoreApplication.translate('MainWindow', 'Configurações'))
+        button.setIcon(QtGui.QIcon.fromTheme('preferences-system'))
+        button.setText(button.tr('Configurações'))
         button.triggered.connect(self.on_open)
         return button
 

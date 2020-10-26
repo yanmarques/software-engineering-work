@@ -3,7 +3,7 @@ from .. import util
 from ... import __version__ as app_version, __author__ as app_author
 from ...dashboard.window import Dashboard
 from ...app import context
-from PyQt5 import QtWidgets, QtCore
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 
 class AboutDialog(QtWidgets.QDialog, screen.Ui_Dialog):
@@ -27,6 +27,7 @@ class HelpMenu(QtWidgets.QMenu):
 
         self.about_action = QtWidgets.QAction()
         self.about_action.setText(self.tr('Sobre'))
+        self.about_action.setIcon(QtGui.QIcon.fromTheme('help-about'))
         self.about_action.triggered.connect(self._open_about)
         self.addAction(self.about_action)
 

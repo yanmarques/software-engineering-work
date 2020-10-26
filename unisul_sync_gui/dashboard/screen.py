@@ -13,13 +13,12 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(583, 625)
+        MainWindow.resize(600, 625)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.gridLayout = QtWidgets.QGridLayout(self.centralwidget)
         self.gridLayout.setObjectName("gridLayout")
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.tabWidget.setGeometry(QtCore.QRect(0, 0, 581, 581))
         self.tabWidget.setLayoutDirection(QtCore.Qt.RightToLeft)
         self.tabWidget.setTabPosition(QtWidgets.QTabWidget.North)
         self.tabWidget.setMovable(True)
@@ -28,7 +27,6 @@ class Ui_MainWindow(object):
         
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 583, 22))
         self.menubar.setObjectName("menubar")
         self.opts_menu = QtWidgets.QMenu(self.menubar)
         self.opts_menu.setObjectName("opts_menu")
@@ -38,8 +36,10 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.logout_button = QtWidgets.QAction(MainWindow)
         self.logout_button.setObjectName("logout_button")
+        self.logout_button.setIcon(QtGui.QIcon.fromTheme('system-log-out'))
         self.close_button = QtWidgets.QAction(MainWindow)
         self.close_button.setObjectName("close_button")
+        self.close_button.setIcon(QtGui.QIcon.fromTheme('application-exit'))
 
         self.menubar.addAction(self.opts_menu.menuAction())
 
@@ -50,8 +50,6 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "UnisulSync | Dashboard"))
-        # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Tab 1"))
-        # self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab_2), _translate("MainWindow", "Tab 2"))
         self.opts_menu.setTitle(_translate("MainWindow", "Opções"))
         self.logout_button.setText(_translate("MainWindow", "Logout"))
         self.close_button.setText(_translate("MainWindow", "Fechar"))
