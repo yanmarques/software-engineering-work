@@ -193,7 +193,7 @@ class UpdatesPlugin(PluginTab):
         return 'Atualizações', setting.UpdateSettingsTab()
 
     def _on_fully_updated(self):
-        util.show_dialog('Atualizações', texts.already_updated)
+        util.show_dialog(texts.already_updated)
 
 
 plugin = UpdatesPlugin

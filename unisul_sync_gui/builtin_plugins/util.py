@@ -33,11 +33,14 @@ def _select_files(mode,
             return files[0]
 
 
-def show_dialog(window_title, body):
-    msg = QtWidgets.QMessageBox()
+def show_dialog(body, icon=None, title=None, parent=None):
+    msg = QtWidgets.QMessageBox(parent=parent)
+    if icon:
+        msg.setIcon(icon)
+    if title:
+        msg.setWindowTitle(msg.tr(title))
     msg.setText(msg.tr(body))
     msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-    msg.setWindowTitle(msg.tr(window_title))
     msg.exec_()
 
 

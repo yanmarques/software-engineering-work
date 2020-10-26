@@ -1,7 +1,7 @@
-from . import screen, setting, loaders
-from ..util import PluginDispatch, select_directory
+from . import screen, setting, loaders, texts
+from .. import util
 from ..settings import PluginTab
-from ... import config, spider, signals
+from ... import config, spider, signals, widgets
 from ...dashboard.window import Dashboard
 from ...book_bot.spiders import (
     eva_parser,
@@ -82,9 +82,6 @@ class DocsListing(screen.Ui_Tab):
         self._fetch_and_load_subjects()
         self._fetch_books()
 
-        if context.config['sync_all_selected_on_open']:
-            self.on_select_all()
-
         # signaling
         self.sync_button.clicked.connect(self.on_sync)
         self.subject_listview.clicked.connect(self.on_subject_selected)
@@ -97,6 +94,9 @@ class DocsListing(screen.Ui_Tab):
     def on_landed(self):
         if context.config['sync_on_open']:
             self.on_sync(None)
+
+        if context.config['sync_all_selected_on_open']:
+            self.on_select_all()
 
     def post_init(self):
         pass
@@ -116,11 +116,9 @@ class DocsListing(screen.Ui_Tab):
             sync_data.extend(selected_books)
 
         if not sync_data:
-            msg = QtWidgets.QMessageBox(parent=self)
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText('Nenhum conteúdo selecionado. Por favor tente selecionar pelo menos 1.')
-            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msg.exec_()
+            util.show_dialog(texts.any_book_selected, 
+                             icon=QtWidgets.QMessageBox.Warning,
+                             parent=self)
             return
 
         directory = self._sync_target_dir_or_fail()
@@ -135,11 +133,9 @@ class DocsListing(screen.Ui_Tab):
             loading.close()
             context.signals.synced.emit()       # pylint: disable=E1101
 
-            msg = QtWidgets.QMessageBox(parent=self)
-            msg.setIcon(QtWidgets.QMessageBox.Information)
-            msg.setText('Sincronização finalizada.')
-            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msg.exec_()
+            util.show_dialog(texts.sync_done,
+                             icon=QtWidgets.QMessageBox.Information,
+                             parent=self)
             
             self.setDisabled(False)
 
@@ -277,34 +273,26 @@ class DocsListing(screen.Ui_Tab):
         if target_dir:
             context.update_config({'sync_dir': target_dir})
             if not dir_from_cfg:
-                msg = QtWidgets.QMessageBox(parent=self)
-                msg.setIcon(QtWidgets.QMessageBox.Information)
-                text = 'Vi aqui que você ainda não possui um diretório padrão.\n'
-                text += 'Então já me adiantei e salvei o diretório "{}" nas suas configurações.'
-                msg.setText(text.format(target_dir))
-                msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-                msg.exec_()    
+                util.show_dialog(texts.first_sync_dir_selected.format(target_dir),
+                                 icon=QtWidgets.QMessageBox.Information,
+                                 parent=self)
         else:
-            msg = QtWidgets.QMessageBox(parent=self)
-            msg.setIcon(QtWidgets.QMessageBox.Warning)
-            msg.setText('Nenhum diretório para a sincronização selecionado.')
-            msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-            msg.exec_()
+            util.show_dialog(texts.any_directory_selected,
+                             icon=QtWidgets.QMessageBox.Warning,
+                             parent=self)
 
         return target_dir
 
     def _open_sync_target_dir(self):
         self._maybe_show_choosing_dialog()
 
-        return select_directory(parent=self)
+        return util.select_directory(parent=self)
 
     @config.just_once
     def _maybe_show_choosing_dialog(self):
-        msg = QtWidgets.QMessageBox(parent=self)
-        msg.setIcon(QtWidgets.QMessageBox.Information)
-        msg.setText('Ei, novata (o)!\nAgora você deve escolher aonde deseja salvar os documentos a serem sincronizados.')
-        msg.setStandardButtons(QtWidgets.QMessageBox.Ok)
-        msg.exec_()
+        util.show_dialog(texts.selecting_first_sync_dir,
+                         icon=QtWidgets.QMessageBox.Information,
+                         parent=self)
 
     def _handle_long_select(self, current_index, last_index, data_list: set):
         rargs = [last_index, current_index]
@@ -379,9 +367,70 @@ class DocsListing(screen.Ui_Tab):
             self.subject_listview_model.appendRow(item)
 
 
-class SyncGuiPlugin(PluginDispatch, PluginTab):
+class SyncWizard:
+    def __init__(self):
+        self.parts = [
+            texts.wizard_part1,
+            texts.wizard_part2,
+            texts.wizard_part3,
+        ]
+
+        self.cfg_parts = [ 
+            (self._on_sync_on_open_cfg, texts.wizard_cfg_sync_on_open),
+            (self._on_sync_all_selected_on_open_cfg, texts.wizard_cfg_all_selected_on_open),
+        ]
+        self.title = 'UnisuSync | Sync Wizard'
+
+    def start(self):
+        for index, text in enumerate(self.parts):
+            self._show_part(index, text)
+        index += 1
+        for cfg_index, (callback, text) in enumerate(self.cfg_parts):
+            self._show_cfg(cfg_index + index, callback, text)
+
+    def _show_cfg(self, index, callback, text):
+        dialog = widgets.ConfirmationMessageBox()
+        window_title = self._build_title(index)
+        dialog.setWindowTitle(dialog.tr(window_title))
+        dialog.setText(dialog.tr(text))
+        callback(dialog.is_accepted())
+
+    def _show_part(self, index, text):
+        dialog = QtWidgets.QMessageBox()
+        window_title = self._build_title(index)
+        dialog.setWindowTitle(dialog.tr(window_title))
+        dialog.setText(dialog.tr(text))
+
+        button = QtWidgets.QPushButton()
+
+        if index == len(self.parts) - 1:
+            btn_icon = QtWidgets.QStyle.SP_DialogApplyButton
+            btn_text = 'Começar'
+        else:
+            btn_icon = QtWidgets.QStyle.SP_DialogOkButton
+            btn_text = 'Próximo'
+
+        button.setIcon(button.style().standardIcon(btn_icon))
+        button.setText(button.tr(btn_text))
+
+        dialog.addButton(button, QtWidgets.QMessageBox.AcceptRole)
+        dialog.exec_()
+
+    def _on_sync_all_selected_on_open_cfg(self, state):
+        context.update_config({'sync_all_selected_on_open': state})
+
+    def _on_sync_on_open_cfg(self, state):
+        context.update_config({'sync_on_open': state})
+
+    def _build_title(self, index):
+        total = len(self.parts) + len(self.cfg_parts)
+        return f'{self.title} Parte {index + 1}/{total}'
+
+
+class SyncGuiPlugin(util.PluginDispatch, PluginTab):
     def init(self):
         context.signals.landing.connect(self.on_landing)
+        context.signals.landed.connect(self.on_landed)
         config.fix_config(setting.default_settings)
 
     def signals(self):
@@ -398,9 +447,16 @@ class SyncGuiPlugin(PluginDispatch, PluginTab):
         assert sender is not None
         self._add_dashboard_tab(sender)
 
+    def on_landed(self, sender=None):
+        self._maybe_start_wizard()
+
     def _add_dashboard_tab(self, dashboard: Dashboard):
         tab_widget = dashboard.tabWidget
         self.add_tab(tab_widget, 'Midiateca', DocsListing())
+
+    @config.just_once
+    def _maybe_start_wizard(self):
+        SyncWizard().start()
 
 
 plugin = SyncGuiPlugin
