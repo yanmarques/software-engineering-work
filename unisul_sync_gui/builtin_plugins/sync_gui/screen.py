@@ -31,6 +31,19 @@ class Ui_Tab(QtWidgets.QWidget):
         self.horizontalLayout = QtWidgets.QHBoxLayout()
         self.horizontalLayout.setContentsMargins(0, 0, 0, 0)
         self.horizontalLayout.setObjectName("horizontalLayout")
+
+        self.refresh_button = QtWidgets.QPushButton(self)
+        self.refresh_button.setIcon(QtGui.QIcon.fromTheme('view-refresh'))
+        font = QtGui.QFont()
+        font.setPointSize(11)
+        font.setBold(False)
+        font.setItalic(False)
+        font.setUnderline(False)
+        font.setWeight(35)
+        self.refresh_button.setFont(font)
+        self.refresh_button.setObjectName("refresh_button")
+        self.horizontalLayout.addWidget(self.refresh_button)
+
         self.sync_button = QtWidgets.QPushButton(self)
         self.sync_button.setIcon(QtGui.QIcon.fromTheme('document-save'))
         font = QtGui.QFont()
@@ -42,6 +55,7 @@ class Ui_Tab(QtWidgets.QWidget):
         self.sync_button.setFont(font)
         self.sync_button.setObjectName("sync_button")
         self.horizontalLayout.addWidget(self.sync_button)
+
         self.mainGrid.addLayout(self.horizontalLayout, 0, 0, 1, 1)
         self.mainGrid.addLayout(self.gridLayout, 1, 0, 1, 1)
 
@@ -49,4 +63,5 @@ class Ui_Tab(QtWidgets.QWidget):
 
     def retranslateUi(self):
         _translate = QtCore.QCoreApplication.translate
-        self.sync_button.setText(_translate("MainWindow", "sincronizar"))
+        self.sync_button.setToolTip(_translate("MainWindow", "sincronizar"))
+        self.refresh_button.setToolTip(_translate("MainWindow", "atualizar"))
