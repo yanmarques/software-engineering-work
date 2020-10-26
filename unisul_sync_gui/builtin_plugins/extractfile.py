@@ -177,7 +177,7 @@ class UnpackPlugin(ExtractListener):
 
     def on_landed(self, sender=None):
         assert sender is not None
-        self._check_rar_support(self, sender)
+        self._check_rar_support(sender)
 
     @just_once
     def _check_rar_support(self, dashboard):
