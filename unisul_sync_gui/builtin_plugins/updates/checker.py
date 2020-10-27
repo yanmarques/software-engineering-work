@@ -11,9 +11,9 @@ import distro
 
 
 GITHUB_REPO = 'https://github.com/yanmarques/software-engineering-work'
-WINDOWS_ASSET = 'unisul-sync-gui_0.0.1-1.zip'
-DEBIAN_ASSET = 'unisul-sync-gui_0.0.1-1_all.deb'
-RPM_ASSET = 'unisul-sync-gui-0.0.1-1.noarch.rpm'
+WINDOWS_ASSET = 'unisul-sync-gui_{}-1.zip'
+DEBIAN_ASSET = 'unisul-sync-gui_{}-1_all.deb'
+RPM_ASSET = 'unisul-sync-gui-{}-1.noarch.rpm'
 
 LINUX_DISTS = {
     DEBIAN_ASSET: [
@@ -93,8 +93,7 @@ class UpdateChecker:
 
     def build_download_url(self):
         assert self.latest_version, 'There is no latest version to download.'
-        # asset_name = deduce_asset()
-        asset_name = WINDOWS_ASSET
+        asset_name = deduce_asset().format(self.latest_version)
         path = f'releases/download/{self.latest_version}/{asset_name}'
         return url(path)
 
