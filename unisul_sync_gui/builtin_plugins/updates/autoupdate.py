@@ -62,9 +62,6 @@ def maybe_install_update():
             # assign that there is no need for updates anymore
             context.update_config({UPDATER_KEY: None})
 
-        # exit from updater application
-        context.exit(0)
-
 
 def filesize(size_in_bytes):
     sizes = (
@@ -228,11 +225,18 @@ class WindowsUpdateApplier(QtWidgets.QDialog, screen.Ui_Dialog):
         self.update_loading.do_stop.emit()
         util.show_dialog(texts.windows_autoupdate_finished)
 
+        # assign that there is no need for updates anymore
+        # it should be called before calling the original app
+        context.update_config({UPDATER_KEY: None})
+
         # get the executable from original app
         main_executable = get_executable(path=self.installation_path)
 
         # re-launches the original app
         os.startfile(main_executable)       # pylint: disable=E1101
+
+        # exit from updater application
+        context.exit(0)
 
     def _on_update_error(self, exc):
         self.update_loading.do_stop.emit()
