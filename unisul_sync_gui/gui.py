@@ -14,10 +14,23 @@ def _register_events(include=None):
     context.signals.closing.connect(on_close)
 
 
-def show():
+def show(mask_update_checking=True, 
+         login_kwargs=dict()):
     _register_events()
 
+    # disable update checking when needed
+    if mask_update_checking:
+        original_update_chk = context.config['check_updates_on_open']
+        context.update_config({'check_updates_on_open': False})
+
     plugin = plugins.PluginManager()
+
+    # restore original update checking value
+    if mask_update_checking:
+        context.update_config({'check_updates_on_open': original_update_chk})
+
+    if mask_update_checking:
+        context.update_config({'check_updates_on_open': original_update_chk})
 
     context.signals.opening.emit()
 

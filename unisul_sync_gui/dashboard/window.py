@@ -4,6 +4,9 @@ from ..builtin_plugins import util
 from ..app import context
 from PyQt5 import QtWidgets
 
+import multiprocessing
+import platform
+
 
 class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
     def __init__(self, parent=None):
@@ -34,10 +37,14 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
 
             def on_logout_done():
                 self.close()
+                login_kwargs = dict(ignore_disk_creds=True)
 
-                # reopen a fresh login window, without trying credentials from disk
-                # because we do not want to login again
-                context.windows['login'] = login.new_from_this(ignore_disk_creds=True)
+                if platform.system() == 'Windows':
+                    self._fix_windows_logout(login_kwargs)
+                else:
+                    # reopen a fresh login window, without trying credentials from disk
+                    # because we do not want to login again
+                    context.windows['login'] = login.new_from_this(**login_kwargs)
 
             self.setDisabled(True)
 
@@ -45,3 +52,30 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
             self.logout_runner = util.GenericCallbackRunner(login.http_auth.logout)
             self.logout_runner.done.connect(on_logout_done)
             self.logout_runner.start()
+
+    def _fix_windows_logout(self, login_kwargs):
+        '''
+        This avoids the error when logging out then logging in on Windows platforms.
+
+        The actual cause of the error is still unknown.
+
+        Steps to reproduce the error:
+        - On Windows, log in then log out
+        - Log in again and when the list of subjects and books are loading, it crashes
+
+        Fix:
+        Create another process and start the program again from there. The current running
+        process is terminated, so the user feels like it just logged him out normally. 
+        '''
+
+        from .. import gui
+
+        kwargs = dict(mask_update_checking=True, 
+                      login_kwargs=login_kwargs)
+        
+        # start the program again using a custom configuration
+        proc = multiprocessing.Process(target=gui.show, kwargs=kwargs)
+        proc.start()
+
+        # exit the running process
+        context.exit()
