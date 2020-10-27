@@ -9,6 +9,8 @@ import sys
 import tempfile
 import shutil
 
+UPDATER_KEY = '_installation_path_to_update'
+
 
 def can_make_it():
     '''
@@ -28,12 +30,33 @@ def relaunch_app():
     os.startfile(sys.executable)        # pylint: disable=E1101
 
 
+def current_path():
+    # see https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
+    return sys._MEIPASS
+
+
+def get_executable(path=None):
+    path = path or current_path()
+
+    # we will assume the same executable of the current one
+    executable = os.path.basename(sys.executable)
+
+    return os.path.join(path, executable)
+
+
 def make(update_checker: checker.UpdateChecker):
     assert can_make_it(), 'Application is not bundled by pyinstaller, could not continue'
     tmpfile = tempfile.mkstemp()[1]
     downloader = update_checker.build_downloader(tmpfile)
-    update_applier = WindowsUpdateApplier(downloader)
-    update_applier.update_app()
+    update_down = WindowUpdateDownloader(downloader)
+    update_down.download_and_extract()
+
+
+def maybe_install_update():
+    installation_path = context.config.get(UPDATER_KEY)
+    if installation_path:
+        win_updater = WindowsUpdateApplier(installation_path)
+        win_updater.update()
 
 
 def filesize(size_in_bytes):
@@ -108,59 +131,102 @@ class AssetDownloadLoading(QtWidgets.QDialog):
         self.label.setText(self.tr(f'{total_size_rcv} de {self.download_len}'))
 
 
-class WindowsUpdateApplier(QtWidgets.QDialog, screen.Ui_Dialog):
+class WindowUpdateDownloader(QtWidgets.QDialog, screen.Ui_Dialog):
     def __init__(self, downloader: checker.AssetDownloader, parent=None):
         super().__init__(parent=parent)
         self.setupUi(self)
-        self.label.setText(self.tr('Atualizando'))
+        self.label.setText(self.tr('Extraindo atualização'))
 
         # get pyinstaller specific parameter
-        # see https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
-        self.installation_path = sys._MEIPASS       # pylint: disable=E1101
+        self.installation_path = current_path()       # pylint: disable=E1101
 
         self.downloader = downloader
         self.downloader.done.connect(self._on_download_done)
         self.download_loading = AssetDownloadLoading(self.downloader)
 
+        self.extract_loading = util.LoadingPoints(self.loading_label)
+        self.extract_loading.done.connect(self.close)
+
+        self.extraction_runner = util.GenericCallbackRunner(self._extract_update)
+        # self.extraction_runner.err.connect(self._o)
+        self.extraction_runner.done.connect(self._on_extraction_done)
+
+    def download_and_extract(self):
+        self.downloader.start()
+        self.download_loading.exec_()
+
+    def _on_download_done(self):
+        self.download_loading.close()
+
+    def _on_extraction_done(self, tmpdir):
+        # get the first item in the directory, it should be our 
+        # application
+        main_directory = os.listdir(tmpdir)[0]
+
+        # we will assume the same executable of the current one
+        main_executable = get_executable(path=main_directory)
+
+        # make sure it knows to update
+        context.update_config({UPDATER_KEY: self.installation_path})
+
+        # launch updater
+        os.startfile(main_executable)       # pylint: disable=E1101
+
+        # exit from old app
+        context.exit()
+
+    def _extract_update(self):
+        tmpdir = tempfile.mkdtemp()
+
+        # extract everything under a temporary directory
+        with zipfile.ZipFile(self.downloader.filepath) as zip:
+            zip.extractall(tmpdir)
+
+        return tmpdir
+
+
+class WindowsUpdateApplier(QtWidgets.QDialog, screen.Ui_Dialog):
+    def __init__(self, installation_path, parent=None):
+        super().__init__(parent=parent)
+        self.setupUi(self)
+        self.label.setText(self.tr('Atualizando'))
+
+        self.installation_path = installation_path
+
         self.update_loading = util.LoadingPoints(self.loading_label)
         self.update_loading.done.connect(self.close)
 
         self.update_runner = util.GenericCallbackRunner(self._apply_update)
+        # self.update_runner.err.connect(self._on_update_error)
         self.update_runner.done.connect(self._on_update_done)
 
-    def update_app(self):
-        self.downloader.start()
-        self.download_loading.exec_()
-        
-    def _apply_update(self):
-        with tempfile.TemporaryDirectory() as tmpdir:
-
-            # extract everything under a temporary directory
-            with zipfile.ZipFile(self.downloader.filepath) as zip:
-                zip.extractall(tmpdir)
-
-            # get the first item in the directory, it should be our 
-            # application
-            main_directory = os.listdir(tmpdir)[0]
-
-            # move extracted contents into the installation directory
-            target_path = os.path.join(tmpdir, main_directory)
-            shutil.copytree(target_path,        # pylint: disable=E1123
-                            self.installation_path,
-                            dirs_exist_ok=True)
-
-    def _on_download_done(self):
-        self.download_loading.close()
+    def update(self):
         self.update_loading.start()
         self.update_runner.start()
         self.exec_()
+        
+    def _apply_update(self):
+        # move extracted contents into the installation directory
+        shutil.copytree(current_path(),     # pylint: disable=E1123
+                        self.installation_path,
+                        dirs_exist_ok=True)
 
     def _on_update_done(self):
         self.update_loading.do_stop.emit()
         util.show_dialog(texts.windows_autoupdate_finished)
 
-        # launches the updated app
-        relaunch_app()
+        # assign that there is no need for updates anymore
+        context.update_config({UPDATER_KEY: None})
 
-        # exit from current application
+        # get the executable from original app
+        main_executable = get_executable(path=self.installation_path)
+
+        # re-launches the original app
+        os.startfile(main_executable)       # pylint: disable=E1101
+
+        # exit from updater application
         context.exit(0)
+
+    def _on_update_error(self, exc):
+        self.update_loading.do_stop.emit()
+        util.show_dialog(str(exc))
