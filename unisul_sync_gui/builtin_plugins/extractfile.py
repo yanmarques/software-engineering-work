@@ -1,4 +1,5 @@
 from .util import PluginStarter, show_dialog
+from .sync_gui.setting import SyncDir
 from ..app import context, cached_property, AppCtxt
 from ..config import just_once
 from PyQt5 import QtWidgets
@@ -33,7 +34,7 @@ class ExtractListener(PluginStarter):
     def _on_item(self, results=None, item=None, info=None):
         books = [book for ok, book in results if ok]
         for book in books:
-            path = os.path.join(context.config['sync_dir'], book['path'])
+            path = os.path.join(SyncDir.get(), book['path'])
             self._try_extractions(path)
 
     def _try_extractions(self, path):

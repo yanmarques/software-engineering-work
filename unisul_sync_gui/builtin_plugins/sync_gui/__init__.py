@@ -93,10 +93,10 @@ class DocsListing(screen.Ui_Tab):
 
     def on_landed(self):
         def on_load_done():
-            if context.config['sync_on_open']:
+            if setting.SyncOnOpen.get():
                 self.on_sync(None)
 
-            if context.config['sync_all_selected_on_open']:
+            if setting.SyncAllSelectedOnOpen.get():
                 self.on_select_all()
 
         # fetch and handle data
@@ -274,12 +274,12 @@ class DocsListing(screen.Ui_Tab):
         return self.selected_books[self.last_subject_index]
 
     def _sync_target_dir_or_fail(self):
-        dir_from_cfg = context.config.get('sync_dir')
+        dir_from_cfg = setting.SyncDir.get()
 
         target_dir = dir_from_cfg or self._open_sync_target_dir()
         
         if target_dir:
-            context.update_config({'sync_dir': target_dir})
+            setting.SyncDir.update(target_dir)
             if not dir_from_cfg:
                 util.show_dialog(texts.first_sync_dir_selected.format(target_dir),
                                  icon=QtWidgets.QMessageBox.Information,
@@ -442,10 +442,10 @@ class SyncWizard:
         dialog.exec_()
 
     def _on_sync_all_selected_on_open_cfg(self, state):
-        context.update_config({'sync_all_selected_on_open': state})
+        setting.SyncAllSelectedOnOpen.update(state)
 
     def _on_sync_on_open_cfg(self, state):
-        context.update_config({'sync_on_open': state})
+        setting.SyncOnOpen.update(state)
 
     def _build_title(self, index):
         total = len(self.parts) + len(self.cfg_parts)

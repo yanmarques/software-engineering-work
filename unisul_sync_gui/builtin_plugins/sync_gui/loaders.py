@@ -1,3 +1,4 @@
+from .setting import SyncSubjectFrequency
 from ... import spider, config
 from ...app import context, cached_property
 from ...book_bot.spiders import eva_parser
@@ -8,13 +9,13 @@ import json
 
 
 def load_subjects(**kwargs):
-    pred_key = context.config['sync_subject_frequency']
+    pred_key = SyncSubjectFrequency.get()
     predicate = find_available_pred(pred_key)
     return SubjectMediaLoader(predicate).load(**kwargs)
 
 
 def load_books(**kwargs):
-    pred_key = context.config['sync_subject_frequency']
+    pred_key = SyncSubjectFrequency.get()
     predicate = find_available_pred(pred_key)
     return BookMediaLoader(predicate).load(**kwargs)
 

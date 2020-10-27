@@ -137,7 +137,7 @@ class UpdatesPlugin(PluginTab):
         context.signals.help_menu.connect(self.add_menu_action)     # pylint: disable=E1101
 
         config.fix_config(setting.default_settings)
-        if context.config['check_updates_on_open']:
+        if setting.CheckUpdatesOnOpenSetting.get():
             UpdateUserInterface().exec_()
 
     def add_menu_action(self, menu: help.HelpMenu = None):
