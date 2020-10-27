@@ -13,6 +13,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 
 import platform
 import webbrowser
+import os
 
 
 class UpdateCheckerRunnable(QtCore.QThread):
@@ -62,8 +63,7 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
             self._handle_download()
 
     def _handle_download(self):
-        asset_name = self._check_system_availability()
-        if asset_name is None:
+        if self._check_system_availability() is None:
             return
 
         handlers = {
@@ -72,9 +72,9 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
 
         choose_handler = handlers.get(platform.system(), 
                                       self._handle_common_download)
-        choose_handler(checker.WINDOWS_ASSET)
+        choose_handler()
 
-    def _handle_windows_update(self, asset_name):
+    def _handle_windows_update(self):
         # make sure we can auto-update
         if autoupdate.can_make_it():
             autoupdate.make(self.update_checker)
@@ -82,11 +82,13 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
             do_download = widgets.ConfirmationMessageBox(default_accept=False)
             do_download.setText(texts.windows_not_bundled_on_update)
             if do_download.is_accepted():
-                self._handle_common_download(asset_name)
+                self._handle_common_download()
     
-    def _handle_common_download(self, asset_name):
+    def _handle_common_download(self):
         download_url = self.update_checker.build_download_url()
         webbrowser.open(download_url)
+        
+        asset_name = os.path.basename(download_url)
         self._show_update_instructions(asset_name)
         
         keep_using = widgets.ConfirmationMessageBox(default_accept=False)

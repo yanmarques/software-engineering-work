@@ -50,6 +50,50 @@ def deduce_asset():
     raise UnavailableLinuxDistribution()
 
 
+def find_latest_version(version_selectors):
+    use_unstable = setting.UseUnstableUpdatesSetting.get()
+
+    def keep_version(release):
+        '''
+        Return whether to keep the specified version.
+
+        It should always keep when using unstable releases,
+        otherwise only when stable.
+        '''
+
+        if use_unstable:
+            return True
+        version = parse_version(release)
+        return not (version.is_devrelease or version.is_prerelease)
+
+    processed_versions = []
+
+    # filter only versions to keep
+    # also remove bad strings
+    for version in version_selectors:
+        _version = version.get().strip()
+        if keep_version(_version):
+            processed_versions.append(_version)
+    
+    # do we still have any versions?
+    if not processed_versions:
+        return
+
+    # assign to the first version, just by now
+    latest_version_index = 0
+    latest_version = parse_version(processed_versions[0])
+
+    for index, candidate in enumerate(processed_versions[1:]):
+        version = parse_version(candidate)
+
+        # maybe change our latest version
+        if version > latest_version:
+            latest_version_index = index
+            latest_version = version
+    
+    return processed_versions[latest_version_index]
+
+
 class UnavailableLinuxDistribution(Exception):
     def __init__(self, message=None):
         if message is None:
@@ -62,6 +106,22 @@ class UnavailableOperatingSystem(Exception):
         if message is None:
             message = f'Unable to manage the underlying operating system: {platform.system()}'
         super().__init__(message)
+
+
+class AnyLatestVersionAvailable(Exception):
+    def __init__(self, all_versions, message=None):
+        if message is None:
+            message = f'Unable to find a valid version from specified versions'
+        super().__init__(message)
+        self.all_versions = all_versions
+
+
+class VersionsParseFailure(Exception):
+    def __init__(self, response, message=None):
+        if message is None:
+            message = f'Could not find any version from upstream server'
+        super().__init__(message)
+        self.response = response
 
 
 class UpdateChecker:
@@ -78,9 +138,12 @@ class UpdateChecker:
         versions = Selector(text=content).xpath('//div/a/span/text()')
 
         if not versions:
-            return None
+            raise VersionsParseFailure(response)
 
-        upstream_version = self.find_latest_version(versions)
+        upstream_version = find_latest_version(versions)
+        
+        if not upstream_version:
+            raise AnyLatestVersionAvailable(versions)
 
         if parse_version(app_version) < parse_version(upstream_version):
             self.latest_version = upstream_version
@@ -96,32 +159,6 @@ class UpdateChecker:
         asset_name = deduce_asset().format(self.latest_version)
         path = f'releases/download/{self.latest_version}/{asset_name}'
         return url(path)
-
-    def find_latest_version(self, version_selectors):
-        # remove bad chars
-        processed_versions = [version.get().strip()
-                              for version in version_selectors]
-
-        use_unstable = setting.UseUnstableUpdatesSetting.get()
-
-        # set the first version as latest, just by now
-        latest_version_str = processed_versions[0]
-        latest_version = parse_version(latest_version_str)
-
-        for candidate in processed_versions[1:]:
-            version = parse_version(candidate)
-
-            # skip unstable releases when not using it
-            if not use_unstable and (version.is_devrelease or \
-                                     version.is_prerelease):
-                continue
-
-            # change our latest version
-            if version > latest_version:
-                latest_version_str = candidate
-                latest_version = version
-        
-        return latest_version_str
         
 
 class AssetDownloader(QtCore.QThread):
