@@ -14,7 +14,7 @@ def _register_events(include=None):
     context.signals.closing.connect(on_close)
 
 
-def show(mask_update_checking=True, 
+def show(mask_update_checking=False, 
          login_kwargs=dict()):
     _register_events()
 
