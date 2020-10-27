@@ -55,6 +55,4 @@ class GenericTab(util.WidgetBuilder):
     def _build_form(self):
         for index, provider_class in enumerate(self.config()):
             provider = provider_class(self)
-            label, field = provider.fields()
-            self.formLayout.setWidget(index, QtWidgets.QFormLayout.LabelRole, label)
-            self.formLayout.setWidget(index, QtWidgets.QFormLayout.FieldRole, field)
+            provider.build_form_layout(index, self.formLayout)

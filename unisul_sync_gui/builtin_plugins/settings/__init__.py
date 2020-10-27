@@ -28,10 +28,35 @@ class PluginTab(PluginStarter):
 class SettingProvider(WidgetBuilder):
     def __init__(self, parent):
         super().__init__(parent=parent)
+        self._layout, self._row_index = None, 0
         self.init()
 
     def init(self):
         pass
+
+    def build_form_layout(self, index, form_layout: QtWidgets.QFormLayout):
+        self._layout = form_layout
+        self._row_index = index
+        self._build()
+
+    def rebuild(self):
+        self._layout.removeRow(self._row_index)
+        self._build()
+
+    def _build(self):
+        label, field = self.fields()
+        self.insert_widgets(label=label, field=field)
+
+    def insert_widgets(self, label=None, field=None):
+        if label:
+            self._layout.setWidget(self._row_index, 
+                                   QtWidgets.QFormLayout.LabelRole, 
+                                   label)
+        
+        if field:
+            self._layout.setWidget(self._row_index, 
+                                   QtWidgets.QFormLayout.FieldRole, 
+                                   field)
 
     def fields(self):
         self._raise_not_implemented('field')
