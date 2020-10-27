@@ -18,6 +18,18 @@ import json
 import os
 
 
+def load_subjects(**kwargs):
+    pred_key = setting.SyncSubjectFrequency.get()
+    predicate = loaders.find_available_pred(pred_key)
+    return loaders.SubjectMediaLoader(predicate).load(**kwargs)
+
+
+def load_books(**kwargs):
+    pred_key = setting.SyncSubjectFrequency.get()
+    predicate = loaders.find_available_pred(pred_key)
+    return loaders.BookMediaLoader(predicate).load(**kwargs)
+
+
 class SyncSpiderThread(QtCore.QThread):
     done = QtCore.pyqtSignal()
 
@@ -330,13 +342,13 @@ class DocsListing(screen.Ui_Tab):
         def on_subjects_done(subjects):
             self.subjects = subjects
             self._load_subjects()
-            self.books_runner = util.GenericCallbackRunner(loaders.load_books, 
+            self.books_runner = util.GenericCallbackRunner(load_books, 
                                                            **kwargs)
             self.books_runner.done.connect(on_books_done)
             self.books_runner.start()
 
         self.setDisabled(True)
-        self.subjects_runner = util.GenericCallbackRunner(loaders.load_subjects, 
+        self.subjects_runner = util.GenericCallbackRunner(load_subjects, 
                                                           **kwargs)
         self.subjects_runner.done.connect(on_subjects_done)
         self.subjects_runner.start()
