@@ -29,13 +29,10 @@ def show(mask_update_checking=False,
     if mask_update_checking:
         context.update_config({'check_updates_on_open': original_update_chk})
 
-    if mask_update_checking:
-        context.update_config({'check_updates_on_open': original_update_chk})
-
     context.signals.opening.emit()
 
     try:
-        context.windows['login'] = login.window.Login()
+        context.windows['login'] = login.window.Login(**login_kwargs)
         
         context.signals.started.emit(plugin)
 
