@@ -1,66 +1,18 @@
-from . import setting, checker, screen, texts
+from . import (
+    setting, 
+    checker, 
+    screen, 
+    texts,
+    autoupdate,
+)
 from .. import util, help
 from ..settings import PluginTab
 from ... import config, widgets
 from ...app import context
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-import distro
+import platform
 import webbrowser
-
-
-class DownloadManager:
-    def __init__(self, downloader: checker.AssetDownloader):
-        self.downloader = downloader
-        self.size, self.per_chunk, self.progress = 0, 0, 0
-        self.downloader.got_response.connect(self._gather_initial_info)
-        self.downloader.chunk_wrote.connect(self._bump)
-        self.downloader.done.connect(self._done)
-
-    def start(self):
-        self.downloader.download()
-
-    def _gather_initial_info(self, size=None):
-        assert size
-        self.size = size
-        self.per_chunk = (self.downloader.chunk_size * 100) / size
-        print(self.per_chunk)
-        print(self.progress)
-
-    def _bump(self):
-        self.progress += self.per_chunk
-        progress = int(self.progress)
-        if progress % 10 == 0 or progress % 2 == 0 or progress % 5 == 0:
-            print(str(int(self.progress)))
-
-    def _done(self):
-        print('DONE')
-
-    
-class AssetDownloadLoading(QtWidgets.QDialog):
-    init_download = QtCore.pyqtSignal(int)
-    bump = QtCore.pyqtSignal(int)
-
-    def __init__(self, parent=None):
-        super().__init__(parent=parent)
-        vbox = QtWidgets.QVBoxLayout()
-        self.label = QtWidgets.QLabel()
-        self.label.setText(self.tr('Enviando requisição...'))
-        vbox.addWidget(self.label)
-        self.prog_bar = QtWidgets.QProgressBar()
-        self.prog_bar.setMaximum(100)
-        self.prog_bar.setValue(0)
-        self.bump.connect(self._bump_progress)
-        self.init_download.connect(self._received_response)
-        vbox.addWidget(self.prog_bar)
-        self.setLayout(vbox)
-
-    def _received_response(self, download_len):
-        self.label.setText(self.tr(f'0/{download_len}'))
-
-    def _bump_progress(self, increase):
-        curr_value = self.prog_bar.value()
-        self.prog_bar.setValue(curr_value + increase)
 
 
 class UpdateCheckerRunnable(QtCore.QThread):
@@ -75,32 +27,6 @@ class UpdateCheckerRunnable(QtCore.QThread):
         self.done.emit(has_updates)
 
 
-class LoadingPoints(QtCore.QThread):
-    do_stop = QtCore.pyqtSignal()
-    done = QtCore.pyqtSignal()
-
-    def __init__(self, label, points_len=5):
-        super().__init__()
-        self.points_len = points_len
-        self._loading_label = label
-        self.stopped = False
-        self.do_stop.connect(self._stop_from_out)
-
-    def run(self):
-        while not self.stopped:
-            self.usleep(250000)
-            text = self._loading_label.text()
-
-            if len(text) < self.points_len:
-                self._loading_label.setText(self.tr(f'{text}.'))
-            else:
-                self._loading_label.setText('')
-        self.done.emit()
-
-    def _stop_from_out(self):
-        self.stopped = True
-
-
 class UpdateUserInterface(QtWidgets.QDialog, screen.Ui_Dialog):
     no_updates = QtCore.pyqtSignal()
 
@@ -108,7 +34,7 @@ class UpdateUserInterface(QtWidgets.QDialog, screen.Ui_Dialog):
         super().__init__(parent=parent)
         self.setupUi(self)
 
-        self.loading = LoadingPoints(self.loading_label)
+        self.loading = util.LoadingPoints(self.loading_label)
         self.loading.done.connect(self.close)
         self.loading.start()
 
@@ -140,8 +66,27 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
         if asset_name is None:
             return
 
-        downloader = self.update_checker.build_downloader(None)
-        webbrowser.open(downloader.url)
+        handlers = {
+            'Windows': self._handle_windows_update,
+        }
+
+        choose_handler = handlers.get(platform.system(), 
+                                      self._handle_common_download)
+        choose_handler(checker.WINDOWS_ASSET)
+
+    def _handle_windows_update(self, asset_name):
+        # make sure we can auto-update
+        if autoupdate.can_make_it():
+            autoupdate.make(self.update_checker)
+        else:
+            do_download = widgets.ConfirmationMessageBox(default_accept=False)
+            do_download.setText(texts.windows_not_bundled_on_update)
+            if do_download.is_accepted():
+                self._handle_common_download(asset_name)
+    
+    def _handle_common_download(self, asset_name):
+        download_url = self.update_checker.build_download_url()
+        webbrowser.open(download_url)
         self._show_update_instructions(asset_name)
         
         keep_using = widgets.ConfirmationMessageBox(default_accept=False)
@@ -158,7 +103,7 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
         }
 
         text = instructions[asset_name]
-        util.show_dialog(text,
+        util.show_dialog(text.format(asset_name),
                          icon=QtWidgets.QMessageBox.Information)
 
     def _check_system_availability(self):

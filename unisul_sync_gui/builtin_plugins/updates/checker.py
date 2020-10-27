@@ -1,6 +1,7 @@
-from ... import signals, __version__ as app_version
+from ... import __version__ as app_version
 from packaging.version import parse as parse_version
 from scrapy.selector import Selector
+from PyQt5 import QtCore
 import requests
 
 import os
@@ -85,34 +86,42 @@ class UpdateChecker:
             return True
         return False
 
-    def build_downloader(self, dst_path):
+    def build_downloader(self, filepath):
+        url = self.build_download_url()
+        return AssetDownloader(url, filepath)
+
+    def build_download_url(self):
         assert self.latest_version, 'There is no latest version to download.'
-        asset_name = deduce_asset()
+        # asset_name = deduce_asset()
+        asset_name = WINDOWS_ASSET
         path = f'releases/download/{self.latest_version}/{asset_name}'
-        return AssetDownloader(url(path), asset_name, dst_path)
+        return url(path)
         
 
-class AssetDownloader:
-    got_response = signals.pysignal()
-    chunk_wrote = signals.pysignal()
-    done = signals.pysignal()
+class AssetDownloader(QtCore.QThread):
+    got_response = QtCore.pyqtSignal(int)
+    chunk_wrote = QtCore.pyqtSignal(int)
+    done = QtCore.pyqtSignal()
 
-    def __init__(self, url, asset_name, filepath):
+    def __init__(self, url, filepath):
+        super().__init__()
         self.url = url
-        self.asset_name = asset_name
         self.filepath = filepath
         self.chunk_size = 8192
 
-    def download(self):
+    def run(self):
         with requests.get(self.url, stream=True) as res:
             res.raise_for_status()
             size = res.headers.get('content-length')
             if size is not None:
                 size = int(size)
-            self.got_response.emit(size=size)
+            self.got_response.emit(size)
 
             with open(self.filepath, mode='wb') as writer:
-                for chunk in res.iter_content(chunk_size=self.chunk_size):
-                    writer.write(chunk)
-                    self.chunk_wrote.emit()
+                self._iter_content(res, writer)
         self.done.emit()
+
+    def _iter_content(self, response, writer):
+        for chunk in response.iter_content(chunk_size=self.chunk_size):
+            chunk_rcv = writer.write(chunk)
+            self.chunk_wrote.emit(chunk_rcv)

@@ -1,8 +1,3 @@
-from . import checker
-
-import pkg_resources
-
-
 unavailable_os = '''
 Você está usando um sistema operational ainda não suportado nativamente.
 Isso não é um problema, porém todas as atualizações deverão ser feitas manualmente.
@@ -18,24 +13,37 @@ A versão mais recente já foi instalada!
 '''
 
 windows_update_instructions = '''
-Extraia o arquivo {} no seguinte diretório:
-{}
-'''.format(checker.WINDOWS_ASSET, pkg_resources.resource_dir)
+Extraia o arquivo {} no diretório em que o aplicativo está instalado.
+'''
 
 deb_update_instructions = '''
 Execute o seguinte comando no terminal, sendo root:
 
 dpkg -i {} && apt install -f
-'''.format(checker.DEBIAN_ASSET)
+'''
 
 rpm_update_instructions = '''
 Execute o seguinte comando no terminal, sendo root:
 
 dnf install {}
-'''.format(checker.RPM_ASSET)
+'''
 
 keep_using_after_update_downloaded = '''
-Sua atualização já está a caminho...
+Seu download está a caminho...
 
 Deseja continuar usando o aplicativo?
+'''
+
+windows_not_bundled_on_update = '''
+Parece que você não está usando o programa vindo com o bundle, talvez você esteja apenas desenvolvendo o programa no Windows.
+
+Sem problemas, porém não posso fazer a atualização comum para a plataforma Windows. Você deseja baixar a atualização de qualquer forma?
+'''
+
+windows_autoupdate_finished = '''
+Voilá!
+
+Para concluir a atualização, o aplicativo será fechado. Ao abri-lo novamente você deve presenciar a nova versão instalada.
+
+Aproveite!
 '''

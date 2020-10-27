@@ -54,6 +54,32 @@ def clear_layout(layout: QtWidgets.QLayout):
         layout.itemAt(0).widget().setParent(None)
 
 
+class LoadingPoints(QtCore.QThread):
+    do_stop = QtCore.pyqtSignal()
+    done = QtCore.pyqtSignal()
+
+    def __init__(self, label, points_len=5):
+        super().__init__()
+        self.points_len = points_len
+        self._loading_label = label
+        self.stopped = False
+        self.do_stop.connect(self._stop_from_out)
+
+    def run(self):
+        while not self.stopped:
+            self.usleep(250000)
+            text = self._loading_label.text()
+
+            if len(text) < self.points_len:
+                self._loading_label.setText(self.tr(f'{text}.'))
+            else:
+                self._loading_label.setText('')
+        self.done.emit()
+
+    def _stop_from_out(self):
+        self.stopped = True
+
+
 class GenericCallbackRunner(QtCore.QThread):
     done = QtCore.pyqtSignal(object)
 
