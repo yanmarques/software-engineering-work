@@ -48,3 +48,11 @@ Ao abri-lo novamente, você deve presenciar a nova versão instalada.
 
 Aproveite!
 '''
+
+confirm_using_unstable_updates = '''
+Ao habilitar atualizações de versões não estáveis, você será contemplado com as últimas atualizações desenvolvidas.
+
+Porém isso terá o custo de que estas versões ainda não foram testadas devidamente e por isso podem ser consideradas instáveis.
+
+Deseja continuar?
+'''
