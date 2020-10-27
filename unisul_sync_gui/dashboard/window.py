@@ -37,14 +37,13 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
 
             def on_logout_done():
                 self.close()
-                login_kwargs = dict(ignore_disk_creds=True)
 
                 if platform.system() == 'Windows':
-                    self._fix_windows_logout(login_kwargs)
+                    self._fix_windows_logout()
                 else:
                     # reopen a fresh login window, without trying credentials from disk
                     # because we do not want to login again
-                    context.windows['login'] = login.new_from_this(**login_kwargs)
+                    context.windows['login'] = login.new_from_this(ignore_disk_creds=True)
 
             self.setDisabled(True)
 
@@ -53,7 +52,7 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
             self.logout_runner.done.connect(on_logout_done)
             self.logout_runner.start()
 
-    def _fix_windows_logout(self, login_kwargs):
+    def _fix_windows_logout(self):
         '''
         This avoids the error when logging out then logging in on Windows platforms.
 
@@ -70,11 +69,12 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
 
         from .. import gui
 
-        kwargs = dict(mask_update_checking=True, 
-                      login_kwargs=login_kwargs)
+        # sinalize to the incoming process that we are avoiding
+        # the windows logout error, so it can act accordingly
+        context.update_config({'fixing_windows_logout_error': True})
         
         # start the program again using a custom configuration
-        proc = multiprocessing.Process(target=gui.show, kwargs=kwargs)
+        proc = multiprocessing.Process(target=gui.show)
         proc.start()
 
         # exit the running process
