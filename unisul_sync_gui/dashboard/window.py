@@ -4,7 +4,6 @@ from ..builtin_plugins import util
 from ..app import context
 from PyQt5 import QtWidgets
 
-import multiprocessing
 import platform
 
 
@@ -68,14 +67,25 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
         '''
 
         from .. import gui
+        from ..builtin_plugins.updates import autoupdate
+
+        import multiprocessing
 
         # sinalize to the incoming process that we are avoiding
         # the windows logout error, so it can act accordingly
         context.update_config({'fixing_windows_logout_error': True})
-        
-        # start the program again using a custom configuration
-        proc = multiprocessing.Process(target=gui.show)
-        proc.start()
+
+        # are we a bundled app
+        if autoupdate.can_make_it():
+            # re-start the app
+            autoupdate.relaunch_app()
+        else:
+            # as this condition are only generally met by developers
+            # we do not have to worry much about it, but it is bad anyway
+            #
+            # this will create a different process everytime the user logs out
+            # each process being a child of the latter
+            multiprocessing.Process(target=gui.show).start()
 
         # exit the running process
         context.exit()

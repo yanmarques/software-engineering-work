@@ -20,6 +20,10 @@ def show():
     login_kwargs = dict()
 
     if context.config.get('fixing_windows_logout_error', False):
+        # ensure we do not come here again
+        # unless explicitly conducted to
+        context.update_config({'fixing_windows_logout_error': False})
+
         # save original value from config
         original_update_chk = context.config['check_updates_on_open']
 
