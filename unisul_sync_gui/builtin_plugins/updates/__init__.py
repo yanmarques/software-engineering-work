@@ -135,6 +135,9 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
 
 class UpdatesPlugin(PluginTab):
     def init(self):
+        # maybe app will exit here
+        autoupdate.maybe_install_update()
+
         # we can safely connect to this custom signal here
         context.signals.help_menu.connect(self.add_menu_action)     # pylint: disable=E1101
 
