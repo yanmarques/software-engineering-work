@@ -26,10 +26,28 @@ class PluginTab(PluginStarter):
 
 
 class SettingProvider(WidgetBuilder):
-    def __init__(self, parent):
+    def __init__(self, parent=None):
         super().__init__(parent=parent)
         self._layout, self._row_index = None, 0
         self.init()
+
+    @classmethod
+    def get(cls):
+        '''
+        Retrieve the current setting value.
+        '''
+
+        klass = cls()
+        return klass.current_value
+
+    @classmethod
+    def update(cls, value):
+        '''
+        Update the current setting value.
+        '''
+
+        klass = cls()
+        return klass.update(value)
 
     def init(self):
         pass
