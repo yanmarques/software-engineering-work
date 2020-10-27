@@ -43,7 +43,8 @@ Sem problemas, porém não posso fazer a atualização comum para a plataforma W
 windows_autoupdate_finished = '''
 Voilá!
 
-Para concluir a atualização, o aplicativo será fechado. Ao abri-lo novamente você deve presenciar a nova versão instalada.
+Para concluir a atualização, o aplicativo será reiniciado de forma automática.
+Ao abri-lo novamente, você deve presenciar a nova versão instalada.
 
 Aproveite!
 '''

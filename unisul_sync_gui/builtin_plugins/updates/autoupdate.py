@@ -20,6 +20,14 @@ def can_make_it():
     return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
 
 
+def relaunch_app():
+    '''
+    Launch an independent version of the app. 
+    '''
+
+    os.startfile(sys.executable)        # pylint: disable=E1101
+
+
 def make(update_checker: checker.UpdateChecker):
     assert can_make_it(), 'Application is not bundled by pyinstaller, could not continue'
     tmpfile = tempfile.mkstemp()[1]
@@ -150,4 +158,9 @@ class WindowsUpdateApplier(QtWidgets.QDialog, screen.Ui_Dialog):
     def _on_update_done(self):
         self.update_loading.do_stop.emit()
         util.show_dialog(texts.windows_autoupdate_finished)
+
+        # launches the updated app
+        relaunch_app()
+
+        # exit from current application
         context.exit(0)
