@@ -82,7 +82,7 @@ class UpdateChecker:
 
         upstream_version = self.find_latest_version(versions)
 
-        if parse_version(app_version) < upstream_version:
+        if parse_version(app_version) < parse_version(upstream_version):
             self.latest_version = upstream_version
             return True
         return False
@@ -106,7 +106,9 @@ class UpdateChecker:
         use_unstable = setting.UseUnstableUpdatesSetting.get()
 
         # set the first version as latest, just by now
-        latest_version = parse_version(processed_versions[0])
+        latest_version_str = processed_versions[0]
+        latest_version = parse_version(latest_version_str)
+
         for candidate in processed_versions[1:]:
             version = parse_version(candidate)
 
@@ -117,9 +119,10 @@ class UpdateChecker:
 
             # change our latest version
             if version > latest_version:
+                latest_version_str = candidate
                 latest_version = version
         
-        return latest_version
+        return latest_version_str
         
 
 class AssetDownloader(QtCore.QThread):
