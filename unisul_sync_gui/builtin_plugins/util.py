@@ -82,6 +82,7 @@ class LoadingPoints(QtCore.QThread):
 
 class GenericCallbackRunner(QtCore.QThread):
     done = QtCore.pyqtSignal(object)
+    err = QtCore.pyqtSignal(Exception)
 
     def __init__(self, callback, *args, **kwargs):
         super().__init__()
@@ -90,8 +91,11 @@ class GenericCallbackRunner(QtCore.QThread):
         self._kwargs = kwargs
 
     def run(self):
-        result = self._callback(*self._args, **self._kwargs)
-        self.done.emit(result)
+        try:
+            result = self._callback(*self._args, **self._kwargs)
+            self.done.emit(result)
+        except Exception as exc:
+            self.err.emit(exc)
 
 
 class WidgetBuilder(QtWidgets.QWidget):
