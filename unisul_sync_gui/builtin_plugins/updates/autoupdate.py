@@ -55,8 +55,12 @@ def make(update_checker: checker.UpdateChecker):
 def maybe_install_update():
     installation_path = context.config.get(UPDATER_KEY)
     if installation_path:
-        win_updater = WindowsUpdateApplier(installation_path)
-        win_updater.update()
+        try:
+            win_updater = WindowsUpdateApplier(installation_path)
+            win_updater.update()
+        finally:
+            # assign that there is no need for updates anymore
+            context.update_config({UPDATER_KEY: None})
 
 
 def filesize(size_in_bytes):
@@ -157,14 +161,20 @@ class WindowUpdateDownloader(QtWidgets.QDialog, screen.Ui_Dialog):
 
     def _on_download_done(self):
         self.download_loading.close()
+        self.extract_loading.start()
+        self.extraction_runner.start()
+        self.exec_()
 
     def _on_extraction_done(self, tmpdir):
+        self.extract_loading.do_stop.emit()
+
         # get the first item in the directory, it should be our 
         # application
         main_directory = os.listdir(tmpdir)[0]
+        update_path = os.path.join(tmpdir, main_directory)
 
         # we will assume the same executable of the current one
-        main_executable = get_executable(path=main_directory)
+        main_executable = get_executable(path=update_path)
 
         # make sure it knows to update
         context.update_config({UPDATER_KEY: self.installation_path})
@@ -214,9 +224,6 @@ class WindowsUpdateApplier(QtWidgets.QDialog, screen.Ui_Dialog):
     def _on_update_done(self):
         self.update_loading.do_stop.emit()
         util.show_dialog(texts.windows_autoupdate_finished)
-
-        # assign that there is no need for updates anymore
-        context.update_config({UPDATER_KEY: None})
 
         # get the executable from original app
         main_executable = get_executable(path=self.installation_path)
