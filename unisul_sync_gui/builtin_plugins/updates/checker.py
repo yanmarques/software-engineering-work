@@ -156,7 +156,11 @@ class UpdateChecker:
 
     def build_download_url(self):
         assert self.latest_version, 'There is no latest version to download.'
-        asset_name = deduce_asset().format(self.latest_version)
+
+        # remove leading "v" strings of "version"
+        asset_version = self.latest_version.lstrip('v')
+        asset_name = deduce_asset().format(asset_version)
+
         path = f'releases/download/{self.latest_version}/{asset_name}'
         return url(path)
         
