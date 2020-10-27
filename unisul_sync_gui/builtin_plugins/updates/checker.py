@@ -1,3 +1,4 @@
+from . import setting
 from ... import __version__ as app_version
 from packaging.version import parse as parse_version
 from scrapy.selector import Selector
@@ -79,9 +80,9 @@ class UpdateChecker:
         if not versions:
             return None
 
-        upstream_version = versions[0].get().strip()
+        upstream_version = self.find_latest_version(versions)
 
-        if parse_version(upstream_version) > parse_version(app_version):
+        if parse_version(app_version) < upstream_version:
             self.latest_version = upstream_version
             return True
         return False
@@ -96,6 +97,29 @@ class UpdateChecker:
         asset_name = WINDOWS_ASSET
         path = f'releases/download/{self.latest_version}/{asset_name}'
         return url(path)
+
+    def find_latest_version(self, version_selectors):
+        # remove bad chars
+        processed_versions = [version.get().strip()
+                              for version in version_selectors]
+
+        use_unstable = setting.UseUnstableUpdatesSetting.get()
+
+        # set the first version as latest, just by now
+        latest_version = parse_version(processed_versions[0])
+        for candidate in processed_versions[1:]:
+            version = parse_version(candidate)
+
+            # skip unstable releases when not using it
+            if not use_unstable and (version.is_devrelease or \
+                                     version.is_prerelease):
+                continue
+
+            # change our latest version
+            if version > latest_version:
+                latest_version = version
+        
+        return latest_version
         
 
 class AssetDownloader(QtCore.QThread):
