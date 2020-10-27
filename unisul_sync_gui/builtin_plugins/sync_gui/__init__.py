@@ -322,8 +322,7 @@ class DocsListing(screen.Ui_Tab):
     def refresh_subjects_and_books(self, load_done=None, **kwargs):
         def on_books_done(books):
             self.books = books
-            self.book_listview.setDisabled(False)
-            self.subject_listview.setDisabled(False)
+            self.setDisabled(False)
 
             if load_done:
                 load_done()
@@ -336,8 +335,7 @@ class DocsListing(screen.Ui_Tab):
             self.books_runner.done.connect(on_books_done)
             self.books_runner.start()
 
-        self.subject_listview.setDisabled(True)
-        self.book_listview.setDisabled(True)
+        self.setDisabled(True)
         self.subjects_runner = util.GenericCallbackRunner(loaders.load_subjects, 
                                                           **kwargs)
         self.subjects_runner.done.connect(on_subjects_done)
