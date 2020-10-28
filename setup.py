@@ -74,6 +74,7 @@ class CustomRpm(bdist_rpm.bdist_rpm):
             'python3-pip',
             'python3-packaging',
             'python3-distro',
+            'python3-setuptools',
         ])
 
 
