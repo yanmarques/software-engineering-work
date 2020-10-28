@@ -291,7 +291,7 @@ class DocsListing(screen.Ui_Tab):
         target_dir = dir_from_cfg or self._open_sync_target_dir()
         
         if target_dir:
-            setting.SyncDir.update(target_dir)
+            setting.SyncDir.set(target_dir)
             if not dir_from_cfg:
                 util.show_dialog(texts.first_sync_dir_selected.format(target_dir),
                                  icon=QtWidgets.QMessageBox.Information,
@@ -452,10 +452,10 @@ class SyncWizard:
         dialog.exec_()
 
     def _on_sync_all_selected_on_open_cfg(self, state):
-        setting.SyncAllSelectedOnOpen.update(state)
+        setting.SyncAllSelectedOnOpen.set(state)
 
     def _on_sync_on_open_cfg(self, state):
-        setting.SyncOnOpen.update(state)
+        setting.SyncOnOpen.set(state)
 
     def _build_title(self, index):
         total = len(self.parts) + len(self.cfg_parts)

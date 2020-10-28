@@ -41,7 +41,7 @@ class SettingProvider(WidgetBuilder):
         return klass.current_value
 
     @classmethod
-    def update(cls, value):
+    def set(cls, value):
         '''
         Update the current setting value.
         '''
