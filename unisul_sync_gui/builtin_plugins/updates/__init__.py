@@ -7,7 +7,7 @@ from . import (
 )
 from .. import util, help
 from ..settings import PluginTab
-from ... import config, widgets
+from ... import widgets
 from ...app import context
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -141,7 +141,7 @@ class UpdatesPlugin(PluginTab):
         # we can safely connect to this custom signal here
         context.signals.help_menu.connect(self.add_menu_action)     # pylint: disable=E1101
 
-        config.fix_config(setting.default_settings)
+        context.fix_config(setting.default_settings)
         if setting.CheckUpdatesOnOpenSetting.get():
             UpdateUserInterface().exec_()
 

@@ -54,6 +54,10 @@ class AppCtxt:
         config.update(new_settings)
         self._clear_config()
 
+    def fix_config(self, default_settings):
+        config.fix_config(default_settings)
+        self._clear_config()
+
     def exit(self, returncode = 0):
         self.windows = {}
         sys.exit(returncode)

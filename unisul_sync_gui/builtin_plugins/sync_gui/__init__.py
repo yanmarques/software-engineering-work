@@ -466,7 +466,7 @@ class SyncGuiPlugin(util.PluginDispatch, PluginTab):
     def init(self):
         context.signals.landing.connect(self.on_landing)
         context.signals.landed.connect(self.on_landed)
-        config.fix_config(setting.default_settings)
+        context.fix_config(setting.default_settings)
 
     def signals(self):
         return [
