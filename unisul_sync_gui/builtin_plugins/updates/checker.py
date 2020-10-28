@@ -4,10 +4,10 @@ from packaging.version import parse as parse_version
 from scrapy.selector import Selector
 from PyQt5 import QtCore
 import requests
+import distro
 
 import os
 import platform
-import distro
 
 
 GITHUB_REPO = 'https://github.com/yanmarques/software-engineering-work'
