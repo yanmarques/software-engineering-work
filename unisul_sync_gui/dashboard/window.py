@@ -32,6 +32,10 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
         msg = widgets.ConfirmationMessageBox(default_accept=False)
         msg.setText('Tem certeza que deseja sair?')
         if msg.is_accepted():
+            # ensure when user logs out, and eventually logs in
+            # again, the app will not face as a first time user
+            self._maybe_reset_first_time()
+
             login = context.windows['login']
 
             def on_logout_done():
@@ -50,6 +54,10 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
             self.logout_runner = util.GenericCallbackRunner(login.http_auth.logout)
             self.logout_runner.done.connect(on_logout_done)
             self.logout_runner.start()
+        
+    def _maybe_reset_first_time(self):
+        if context.config['first_time']:
+            context.update_config({'first_time': False})
 
     def _fix_windows_logout(self):
         '''
