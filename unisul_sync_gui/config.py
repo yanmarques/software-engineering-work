@@ -21,7 +21,7 @@ def load(no_fixing=False):
 
 
 def update(new_settings, old_settings=None):
-    old_settings = old_settings or load()
+    old_settings = load() if old_settings is None else old_settings 
     
     for k, v in new_settings.items():
         old_settings[k] = v
