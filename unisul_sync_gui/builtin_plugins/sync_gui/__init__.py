@@ -493,5 +493,12 @@ class SyncGuiPlugin(util.PluginDispatch, PluginTab):
     def _maybe_start_wizard(self):
         SyncWizard().start()
 
+        def on_closing_app():
+            context.update_config({'first_time': False})
+
+        # after user have been presented to the wizard
+        # make sure we mark user as done
+        context.signals.closing.connect(on_closing_app)
+
 
 plugin = SyncGuiPlugin
