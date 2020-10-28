@@ -105,11 +105,11 @@ class DocsListing(screen.Ui_Tab):
 
     def on_landed(self):
         def on_load_done():
-            if setting.SyncOnOpen.get():
-                self.on_sync(None)
-
             if setting.SyncAllSelectedOnOpen.get():
                 self.on_select_all()
+
+            if setting.SyncOnOpen.get():
+                self.on_sync(None)
 
         # fetch and handle data
         self.refresh_subjects_and_books(load_done=on_load_done)
