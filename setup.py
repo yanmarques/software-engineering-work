@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-import unisul_sync_gui
 from unisul_sync_gui.dist_util import (
     deduce_data_files,
     deduce_install_requires
 )
 from distutils.command import bdist_rpm
 from setuptools import setup, find_packages
+import unisul_sync_gui
 
 import shutil
 import sys
@@ -78,7 +78,7 @@ class CustomRpm(bdist_rpm.bdist_rpm):
         ])
 
 
-setup(name='unisul-sync-gui',
+setup(name=unisul_sync_gui.__app__,
       version=unisul_sync_gui.__version__,
       license='BSD (3 clause)',
       description='Synchronyze books from EVA system easily',

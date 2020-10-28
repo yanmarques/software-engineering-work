@@ -1,5 +1,8 @@
 from . import setting
-from ... import __version__ as app_version
+from ... import (
+    __version__ as app_version, 
+    __app__ as app_name
+)
 from packaging.version import parse as parse_version
 from scrapy.selector import Selector
 from PyQt5 import QtCore
@@ -11,9 +14,10 @@ import platform
 
 
 GITHUB_REPO = 'https://github.com/yanmarques/software-engineering-work'
-WINDOWS_ASSET = 'unisul-sync-gui_{}-1.zip'
-DEBIAN_ASSET = 'unisul-sync-gui_{}-1_all.deb'
-RPM_ASSET = 'unisul-sync-gui-{}-1.noarch.rpm'
+
+WINDOWS_ASSET = f'{app_name}_{{}}.zip'
+DEBIAN_ASSET = f'{app_name}_{{}}_all.deb'
+RPM_ASSET = f'{app_name}-{{}}.noarch.rpm'
 
 LINUX_DISTS = {
     DEBIAN_ASSET: [
