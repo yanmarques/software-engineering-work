@@ -55,7 +55,7 @@ class BaseMediaLoader(abc.ABC):
             'EXPORTER_DIR': config.config_path()
         }
 
-        spider.crawl(spider_cls, settings=settings)
+        spider.crawl(spider_cls, settings=settings, timeout=60.0)
 
     def _from_file(self, path):
         with open(path, encoding='utf8') as io_reader:
