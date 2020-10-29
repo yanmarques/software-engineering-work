@@ -39,11 +39,15 @@ class BookDownloaderSpider(scrapy.Spider):
     def synchronize(self, response):
         for item in self.load_books():
             book_item = self.dict_to_book(item)
+
+            if book_item['is_external'] and not book_item['seems_downloadable']:
+                continue
+
             download_url = book_item['download_url'] 
-            
+
             # normalize url when not full-url
-            if not response.url in download_url:
-                book_item['download_url'] = response.urljoin(book_item['download_url'])
+            if not book_item['is_external'] and not response.url in download_url:
+                book_item['download_url'] = response.urljoin(download_url)
             yield book_item
 
     def dict_to_book(self, data: dict):

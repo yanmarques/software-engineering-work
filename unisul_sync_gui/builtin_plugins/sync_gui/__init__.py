@@ -14,6 +14,7 @@ from PyQt5 import (
     QtWidgets,
 )
 
+import webbrowser
 import json
 import os
 
@@ -229,6 +230,18 @@ class DocsListing(screen.Ui_Tab):
     def on_book_selected(self, qtindex):
         index = qtindex.row()
         # modifiers = QApplication.keyboardModifiers()
+
+        book = self._current_books_cache[index]
+        if book['is_external'] and not book['seems_downloadable']:
+            open_link = widgets.ConfirmationMessageBox()
+            text = texts.confirm_open_link_on_browser
+            open_link.setText(text.format(book['download_url']))
+            
+            if open_link.is_accepted():
+                webbrowser.open(book['download_url'])
+
+            # event should not continue
+            return
         
         # get the books set of current subject 
         selected_books = self._current_selected_books
@@ -384,7 +397,12 @@ class DocsListing(screen.Ui_Tab):
         # load new books into list
         for index, book in enumerate(self._current_books_cache):
             item = QtGui.QStandardItem()
-            if index in selected_books:
+            book_is_link = book['is_external'] and not book['seems_downloadable']
+            if book_is_link:
+                icon = QtWidgets.QStyle.SP_FileLinkIcon
+                qicon = self.style().standardPixmap(icon)
+                item.setIcon(QtGui.QIcon(qicon.scaledToHeight(15)))
+            elif index in selected_books:
                 item.setCheckState(QtCore.Qt.Checked)
             item.setText(book['name'])
             item.setToolTip(book['filename'])

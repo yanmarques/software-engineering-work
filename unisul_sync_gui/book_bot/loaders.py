@@ -51,34 +51,52 @@ class BookLoader:
     def set_fallback_filename(self, book):
         book['filename'] = book['name']
 
-    def parse_filename(self, book):
+    def finish_parsing(self, book):
         parsed_url = urlparse(book['download_url'])
         link_hostname = parsed_url.hostname
 
         # is this an random internet link?
         if link_hostname and link_hostname != http.EVA_DOMAIN:
-            self.set_fallback_filename(book)
-            return book
+            book['is_external'] = True
+        else:
+            book['is_external'] = False
 
-        parsed_qs = parse_qs(parsed_url.query)
-    
-        if Book.qs_file_arg in parsed_qs:
-            book['filename'] = parsed_qs[Book.qs_file_arg][0]
-            return book
+            # try to retrieve filename from url
+            parsed_qs = parse_qs(parsed_url.query)
+            if Book.qs_file_arg in parsed_qs:
+                book['filename'] = parsed_qs[Book.qs_file_arg][0]
+                return book
+
+        # deduce which base url of the request
+        if book['is_external']:
+            # means no base url, the download_url attribute
+            # is already a full url
+            base_url = ''
+        else:
+            base_url = http.EVA_BASE_URL
 
         def on_download_headers(response):
+            default_filename = http.urljoin(base_url, 
+                                            book['download_url'])
+            filename = None
+
             try:
-                default_filename = http.urljoin(http.EVA_BASE_URL, 
-                                                book['download_url'])
-                filename = http.parse_filename(response, default_filename)
-                book['filename'] = filename
+                filename = http.parse_filename(response)
+                if filename:
+                    book['seems_downloadable'] = True
             except FileNotFoundError:
-                self.set_fallback_filename(book)
+                pass
+
+            book['filename'] = filename or default_filename
             return book
+
+        # default is not downloadable
+        book['seems_downloadable'] = False
 
         # we do not have the name yet
         # so let's find it
-        return http.web_open(book['download_url'], 
+        return http.web_open(book['download_url'],
+                             base_url=base_url, 
                              callback=on_download_headers,
                              method='HEAD')
 
@@ -93,13 +111,15 @@ class BookLoader:
     def __call__(self, book_tree):
         loader = ItemLoader(item=Book(), selector=book_tree)
         loader.add_xpath('name', './/small//text()')
-        loader.add_xpath('download_url', './/a[@title="Download"]/@href')
+
+        url_xpath = './/a[@title="Download" or @title="Acessar"]/@href'
+        loader.add_xpath('download_url', url_xpath)
+
         loaded_book = loader.load_item()
         loaded_book['subject'] = self.subject
         book = ensure_has_return(loaded_book, 'download_url')
         if book:
-            print(f'subj: {self.subject} book: {book}')
-            return self.parse_filename(book)
+            return self.finish_parsing(book)
 
 
 class LearningUnitBookLoader(BookLoader):

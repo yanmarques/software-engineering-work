@@ -72,3 +72,9 @@ Nenhum documento selecionado.
 
 A sincronização não será finalizada.
 '''
+
+confirm_open_link_on_browser = '''
+Este documento é um link para um conteúdo externo. Deseja acessar o link no navegador?
+
+{}
+'''

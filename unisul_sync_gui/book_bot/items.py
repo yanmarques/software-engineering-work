@@ -71,6 +71,8 @@ class Book(NamedItem):
     download_url = default_field()
     filename = default_field(unquote)
     subject = scrapy.Field()
+    is_external = scrapy.Field()
+    seems_downloadable = scrapy.Field()
 
     qs_file_arg = 'arquivo'
 
