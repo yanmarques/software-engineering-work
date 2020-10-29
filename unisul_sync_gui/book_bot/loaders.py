@@ -52,6 +52,9 @@ class BookLoader:
         book['filename'] = book['name']
 
     def finish_parsing(self, book):
+        # default is not downloadable
+        book['seems_downloadable'] = False
+
         parsed_url = urlparse(book['download_url'])
         link_hostname = parsed_url.hostname
 
@@ -65,6 +68,9 @@ class BookLoader:
             parsed_qs = parse_qs(parsed_url.query)
             if Book.qs_file_arg in parsed_qs:
                 book['filename'] = parsed_qs[Book.qs_file_arg][0]
+
+                # assume it is always downloadable 
+                book['seems_downloadable'] = True
                 return book
 
         # deduce which base url of the request
@@ -90,9 +96,6 @@ class BookLoader:
             book['filename'] = filename or default_filename
             return book
 
-        # default is not downloadable
-        book['seems_downloadable'] = False
-
         # we do not have the name yet
         # so let's find it
         return http.web_open(book['download_url'],
@@ -106,6 +109,8 @@ class BookLoader:
         return Book(name=data['name'], 
                     download_url=data['download_url'], 
                     filename=data['filename'],
+                    is_external=data['is_external'],
+                    seems_downloadable=data['seems_downloadable'],
                     subject=subject)
 
     def __call__(self, book_tree):
