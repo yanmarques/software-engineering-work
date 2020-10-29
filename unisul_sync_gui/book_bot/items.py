@@ -80,24 +80,6 @@ class Book(NamedItem):
         media_dir = self['subject']['name']
         return os.path.join(media_dir, media_name)
 
-    def __setitem__(self, key, value):
-        super().__setitem__(key, value)
-        if key == 'download_url' and self['download_url'] and not 'filename' in self:
-            self.parse_filename()
-
-    def parse_filename(self):
-        query_st = urlparse(self['download_url']).query
-        parsed_qs = parse_qs(query_st)
-    
-        if Book.qs_file_arg in parsed_qs:
-            self.set_filename(parsed_qs[Book.qs_file_arg][0])
-    
-    def set_filename(self, filename):
-        """Sets the filename processing input/output manually"""
-        field = self.fields['filename']
-        out_proc, in_proc = field['output_processor'], field['input_processor']
-        self['filename'] = out_proc(in_proc(filename))
-
 
 class MaxSubject(NamedItem):
     url = default_field()

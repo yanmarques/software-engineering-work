@@ -2,7 +2,11 @@ import scrapy
 from .eva_auth import LoginSpider, check_login
 from unisul_sync_gui.book_bot.items import maybe_getattr, first_when_list
 from unisul_sync_gui.book_bot.utils import http, os_files
-from unisul_sync_gui.book_bot.loaders import SubjectLoader, BookLoader
+from unisul_sync_gui.book_bot.loaders import (
+    SubjectLoader, 
+    BookLoader,
+    LearningUnitBookLoader,
+)
 
 
 def _display_and_load(spider, name, response, loader):
@@ -84,6 +88,22 @@ class BookSpider(scrapy.Spider):
                                 meta={'subject': subject},
                                 args=args,
                                 callback=self.parse_books)
+
+            # get learning unit books
+            yield http.web_open('/listaMidiateca.processa', 
+                                meta={'subject': subject},
+                                args={'turmaIdSessao': args['turmaIdSessao']},
+                                callback=self.parse_learning_unit_books)
+            
+    @check_login
+    def parse_learning_unit_books(self, response):
+        assert 'subject' in response.meta, 'Main subject was not provided.'
+        subject = response.meta['subject']
+        self.logger.debug('subject: %s', subject)
+        return _display_and_load(self, 
+                                'book', 
+                                response, 
+                                LearningUnitBookLoader(subject=subject))
 
     @http.log_request
     @check_login

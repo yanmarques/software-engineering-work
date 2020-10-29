@@ -3,7 +3,8 @@ from unisul_sync_gui.book_bot.utils import http
 from scrapy.loader import ItemLoader
 from scrapy.http import Response
 
-from urllib.parse import urljoin
+from urllib.parse import urljoin, parse_qs
+from scrapy.utils.url import urlparse
 
 
 def ensure_has_return(item, *args):
@@ -47,6 +48,40 @@ class BookLoader:
     def get_tree(self, response: Response):
         return response.xpath("//div[@id='insereEspaco']/div")
 
+    def set_fallback_filename(self, book):
+        book['filename'] = book['name']
+
+    def parse_filename(self, book):
+        parsed_url = urlparse(book['download_url'])
+        link_hostname = parsed_url.hostname
+
+        # is this an random internet link?
+        if link_hostname and link_hostname != http.EVA_DOMAIN:
+            self.set_fallback_filename(book)
+            return book
+
+        parsed_qs = parse_qs(parsed_url.query)
+    
+        if Book.qs_file_arg in parsed_qs:
+            book['filename'] = parsed_qs[Book.qs_file_arg][0]
+            return book
+
+        def on_download_headers(response):
+            try:
+                default_filename = http.urljoin(http.EVA_BASE_URL, 
+                                                book['download_url'])
+                filename = http.parse_filename(response, default_filename)
+                book['filename'] = filename
+            except FileNotFoundError:
+                self.set_fallback_filename(book)
+            return book
+
+        # we do not have the name yet
+        # so let's find it
+        return http.web_open(book['download_url'], 
+                             callback=on_download_headers,
+                             method='HEAD')
+
     @staticmethod
     def from_dict(data: dict):
         subject = SubjectLoader.from_dict(data['subject'])
@@ -56,13 +91,20 @@ class BookLoader:
                     subject=subject)
 
     def __call__(self, book_tree):
-        item = Book()
-        loader = ItemLoader(item=item, selector=book_tree)
+        loader = ItemLoader(item=Book(), selector=book_tree)
         loader.add_xpath('name', './/small//text()')
-        loader.add_xpath('download_url', ".//a[@title='Download']/@href")
+        loader.add_xpath('download_url', './/a[@title="Download"]/@href')
         loaded_book = loader.load_item()
         loaded_book['subject'] = self.subject
-        return ensure_has_return(loaded_book, 'download_url')
+        book = ensure_has_return(loaded_book, 'download_url')
+        if book:
+            print(f'subj: {self.subject} book: {book}')
+            return self.parse_filename(book)
+
+
+class LearningUnitBookLoader(BookLoader):
+    def get_tree(self, response: Response):
+        return response.xpath("//*[@id='tituloGrad']/following-sibling::div/div")
 
     
 class MaxSubjectLoader(SubjectLoader):
