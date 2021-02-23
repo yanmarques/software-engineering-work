@@ -1,9 +1,12 @@
-FROM fedora:${fedora_version:-33}
+ARG fedora_version=33
+
+FROM fedora:${fedora_version}
 
 RUN dnf install -y git python3-setuptools rpm-build
 
 ADD docker-assets/* /assets/
 
+# Volume used to send distribution archives to host
 VOLUME /dist/
 
 ENTRYPOINT ["/bin/bash"]
