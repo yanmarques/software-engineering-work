@@ -1,0 +1,10 @@
+FROM fedora:${fedora_version:-33}
+
+RUN dnf install -y git python3-setuptools rpm-build
+
+ADD docker-assets/* /assets/
+
+VOLUME /dist/
+
+ENTRYPOINT ["/bin/bash"]
+CMD ["/assets/entrypoint.sh", "custom_rpm"]
