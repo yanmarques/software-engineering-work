@@ -78,3 +78,10 @@ Este documento é um link para um conteúdo externo. Deseja acessar o link no na
 
 {}
 '''
+
+confirm_do_wizard = '''
+Um passo a passo está pronto para ser apresentado a você. Com ele, será possível entender da melhor forma como o programa funciona, não existe nenhum mistério mas é aconselhado para
+qualquer indivíduo.
+
+Continuar com o passo a passo?
+'''

@@ -509,7 +509,13 @@ class SyncGuiPlugin(util.PluginDispatch, PluginTab):
 
     @config.just_once
     def _maybe_start_wizard(self):
-        SyncWizard().start()
+        dialog = widgets.ConfirmationMessageBox()
+        window_title = 'Passo-a-Passo'
+        dialog.setWindowTitle(dialog.tr(window_title))
+        dialog.setText(dialog.tr(texts.confirm_do_wizard))
+
+        if dialog.is_accepted():
+            SyncWizard().start()
 
         # after user have been presented to the wizard
         # make sure we mark user as done
