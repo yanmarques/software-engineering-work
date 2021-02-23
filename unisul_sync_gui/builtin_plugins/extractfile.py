@@ -172,13 +172,13 @@ class UnpackPlugin(ExtractListener):
             WinRARExtraction()
         ]
 
-    def init(self):
-        super().init()
-        context.signals.landed.connect(self.on_landed)
+    def start(self):
+        super().start()
+        context.signals.syncing.connect(self.on_syncing)
 
-    def on_landed(self, sender=None):
-        assert sender is not None
-        self._check_rar_support(sender)
+    def on_syncing(self, loader=None):
+        assert loader is not None
+        self._check_rar_support(loader)
 
     @just_once
     def _check_rar_support(self, dashboard):
