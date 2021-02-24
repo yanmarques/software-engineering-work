@@ -22,6 +22,44 @@ def list_icons():
     return icons
 
 
+def find_icons_dirname():
+    # windows pyinstaller? get frozen path
+    if is_bundled():
+        return cwd()
+
+    module_dir = os.path.dirname(cwd())
+    top_level_dir = os.path.dirname(module_dir)
+    static_icons_dir = os.path.join(top_level_dir, 'icons')
+
+    # dev mode? get icons from source code
+    if os.path.exists(static_icons_dir) and \
+       os.path.isdir(static_icons_dir):
+        return top_level_dir
+
+    # otherwise linux default icons path
+    return '/usr/share/'
+
+
+def is_bundled():
+    '''
+    Return whether the app is bundled.
+
+    @see https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
+    '''
+
+    return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+
+
+def cwd():
+    if is_bundled():
+        # @see https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
+        target_dir = sys._MEIPASS
+    else:
+        target_dir = __file__
+
+    return os.path.abspath(os.path.realpath(target_dir))
+
+
 def deduce_data_files():
     if platform.system() != 'Windows':
         return [('share/applications/', ['unisul-sync-gui.desktop']),

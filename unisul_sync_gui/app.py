@@ -1,7 +1,7 @@
-from . import config, signals
-from PyQt5 import QtWidgets
-
+from . import config, signals, dist_util
+from PyQt5 import QtWidgets, QtGui
 import requests
+
 import functools
 import sys
 import os
@@ -22,11 +22,21 @@ def find_downstream_directory(name, prevpath=None):
             return result
 
 
+def eva_icon(size: str='16x16'):
+    icons_dirname = dist_util.find_icons_dirname()
+    return os.path.join(icons_dirname,
+                        'icons',
+                        'hicolor',
+                        size, 
+                        'apps', 
+                        'eva.png')
+
+
 class AppCtxt:
     def __init__(self):
         self._clear_config()
         self.windows = {}
-        self.app  
+        self.app.setWindowIcon(QtGui.QIcon(eva_icon('128x128')))
 
     @cached_property
     def app(self):

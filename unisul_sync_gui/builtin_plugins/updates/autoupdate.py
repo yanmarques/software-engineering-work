@@ -1,5 +1,6 @@
 from . import texts, checker, screen
 from .. import util
+from ... import dist_util 
 from ...app import context
 from PyQt5 import QtWidgets, QtCore
 
@@ -13,13 +14,7 @@ UPDATER_KEY = '_installation_path_to_update'
 
 
 def can_make_it():
-    '''
-    Return whether the app is bundled.
-
-    see https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
-    '''
-
-    return getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS')
+    return dist_util.is_bundled()
 
 
 def relaunch_app():
@@ -31,8 +26,7 @@ def relaunch_app():
 
 
 def current_path():
-    # see https://pyinstaller.readthedocs.io/en/stable/runtime-information.html
-    return sys._MEIPASS
+    return dist_util.cwd()
 
 
 def get_executable(path=None):
