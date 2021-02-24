@@ -32,7 +32,10 @@ class ExtractListener(PluginStarter):
         self._per_bump = 100 / self._count
 
     def _on_item(self, results=None, item=None, info=None):
-        books = [book for ok, book in results if ok]
+        # only get actually downloaded files
+        books = [book for ok, book in results 
+                 if ok and book.get('status') == 'downloaded']
+
         for book in books:
             path = os.path.join(SyncDir.get(), book['path'])
             self._try_extractions(path)
