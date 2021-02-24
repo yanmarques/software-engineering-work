@@ -153,6 +153,7 @@ class ZIPExtraction(ExtractionStrategy):
     # Extensions ignored when considering a recognized zip file
     extension_blacklist = [
         '.docx',
+        '.pptx',
     ]
 
     def book_to_extract(self, path):
