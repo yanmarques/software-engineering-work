@@ -150,8 +150,19 @@ class WinRARExtraction(RARExtraction):
 
 
 class ZIPExtraction(ExtractionStrategy):
+    # Extensions ignored when considering a recognized zip file
+    extension_blacklist = [
+        '.docx',
+    ]
+
     def book_to_extract(self, path):
-        return zipfile.is_zipfile(path)
+        _, extension = os.path.splitext(path)
+        is_zipfile = zipfile.is_zipfile(path)
+
+        if is_zipfile and not extension in self.extension_blacklist:
+            return True
+
+        return False
 
     def extract(self, path):
         with zipfile.ZipFile(path) as zip:
