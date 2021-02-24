@@ -1,0 +1,16 @@
+ARG debian_version=10
+FROM debian:${debian_version}
+
+ARG DEBIAN_FRONTEND=noninterative
+RUN apt update && \
+    apt install -y --no-install-recommends \
+        python3-all python3-pip python3-setuptools python3-stdeb \
+        python-all dh-python git build-essential debhelper fakeroot
+
+ADD docker-assets/* /assets/
+
+# Volume used to send distribution archives to host
+VOLUME /dist/
+
+ENTRYPOINT ["/bin/bash"]
+CMD ["/assets/entrypoint.sh", "deb"]
