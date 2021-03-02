@@ -105,7 +105,7 @@ def install_weak_requirements():
     return pip_weak_requirements('install')    
 
 
-def pip_weak_requirements(*command):
+def pip_weak_requirements(*command, on_error=None):
     cmd = ['pip3'] + list(command) + weak_requirements()
 
     try:
@@ -116,6 +116,13 @@ def pip_weak_requirements(*command):
         return True
     except subprocess.CalledProcessError as proc:
         error = proc.stderr.decode().strip()
+
         if error:
-            print(error)
+            # set print as default callback
+            if on_error is None:
+                on_error = print
+
+            # handle error with callback
+            on_error(error)
+
         return False
