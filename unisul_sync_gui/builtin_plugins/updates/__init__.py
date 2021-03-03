@@ -8,7 +8,7 @@ from . import (
 from .. import util, help, settings
 from ... import widgets, app
 from PyQt5 import QtWidgets, QtCore, QtGui
-from requests.exceptions import ConnectTimeout
+from requests.exceptions import ConnectionError
 
 import platform
 import webbrowser
@@ -51,8 +51,8 @@ class UpdateUserInterface(QtWidgets.QDialog, screen.Ui_Dialog):
 
     def _on_error(self, error):
         self.loading.do_stop.emit()
-        if isinstance(error, ConnectTimeout):
-            util.show_dialog(texts.update_check_timed_out, 
+        if isinstance(error, ConnectionError):
+            util.show_dialog(texts.update_check_conn_error, 
                              icon=QtWidgets.QMessageBox.Warning,
                              parent=self)
 
