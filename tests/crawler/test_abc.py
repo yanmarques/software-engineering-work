@@ -1,56 +1,31 @@
-from unisul_sync_gui.crawler import abc
-
 import os
-from pathlib import Path
 
-
-class FakeDumper(abc.IODumper):
-    def write_fp(self, fp, data, **kwargs):
-        pass
-
-    def read_fp(self, fp, **kwargs):
-        pass
-
-
-class FakeExporter(abc.ListExporter):
-    def dumper_factory(self, path):
-        return FakeDumper(path)
     
-    def should_export(self):
-        return True
+def test_exports_all(exp_write_args):
+    expected = [1, 2, 3]
+
+    result = exp_write_args.export(expected)
+
+    assert result == (expected,)
 
 
-def test_io_export_with_kwargs(tmp_path):
+def test_io_export_with_kwargs(exp_write_kwargs):
     kw_expected = {'foo': 'bar'}
 
-    def assert_kwargs(_, __, **kwargs):
-        assert kwargs == kw_expected
+    result = exp_write_kwargs.export([], **kw_expected)
 
-    file_path = tmp_path / Path('out')
-    fake_exp = FakeExporter(file_path)
-    
-    # patch write function
-    fake_exp.dumper.write_fp = assert_kwargs
-
-    fake_exp.export([], **kw_expected)
+    assert result == kw_expected
 
 
-def test_io_export_creates_file(tmp_path):
-    file_path = tmp_path / Path('out')
-    fake_exp = FakeExporter(file_path)
+def test_io_export_creates_file(fake_exporter):
+    fake_exporter.export([])
+    assert os.path.isfile(fake_exporter.dumper.path)
 
-    fake_exp.export([])
 
-    assert os.path.isfile(file_path)
-
-def test_io_export_use_utf8_by_default(tmp_path):
-    def assert_fp_is_utf8(fp, _, **__):
+def test_io_export_use_utf8_by_default(mock_exporter_write):
+    def assert_fp_is_utf8(fp, _):
         assert fp.encoding == 'utf-8'
 
-    file_path = tmp_path / Path('any')
-    fake_exp = FakeExporter(file_path)
-    
-    # patch write function
-    fake_exp.dumper.write_fp = assert_fp_is_utf8
+    mock_exp = mock_exporter_write(assert_fp_is_utf8)
 
-    fake_exp.export([])
+    mock_exp.export([])

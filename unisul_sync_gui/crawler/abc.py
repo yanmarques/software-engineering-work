@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Any
 
 
 class IODumper(ABC):
@@ -56,15 +57,14 @@ class BaseExporter(ABC):
         self.exported_items = None
 
         # parameters received on export() function
-        self.items = None
-        self.item = None
+        self._items = None
 
     @abstractmethod
     def dumper_factory(self, *args, **kwargs):
         pass
 
     @abstractmethod
-    def should_export(self):
+    def should_export(self, item):
         pass
 
     @abstractmethod
@@ -72,24 +72,28 @@ class BaseExporter(ABC):
         pass
 
     @abstractmethod
-    def add_item_to_export_list(self):
+    def add_item_to_export_list(self, item):
         pass
 
     def done_to_export(self):
         return True
 
+    def process_item(self, item) -> Any:
+        return item
+
     def export(self, items, **kwargs):
         self.reset_exported_items()
 
-        self.items = items
+        self._items = items
 
-        for item in self.items:
-            self.item = item
-            if self.should_export():
-                self.add_item_to_export_list()
+        for item in self._items:
+            if self.should_export(item):
+                item_result = self.process_item(item)
+                self.add_item_to_export_list(item_result)
         
         if self.done_to_export():
-            self.dumper.dump(self.exported_items, **kwargs)
+            return self.dumper.dump(self.exported_items, 
+                                    **kwargs)
 
 
 class ListExporter(BaseExporter):
@@ -100,5 +104,5 @@ class ListExporter(BaseExporter):
     def reset_exported_items(self):
         self.exported_items = []
 
-    def add_item_to_export_list(self):
-        self.exported_items.append(self.item)
+    def add_item_to_export_list(self, item):
+        self.exported_items.append(item)
