@@ -1,8 +1,6 @@
 from . import plugins, login
 from .app import context
 
-import sys
-
 
 def show():
     login_kwargs = dict()
@@ -21,6 +19,7 @@ def show():
 
         # start the plugin manager without checking for updates
         plugin = plugins.PluginManager()
+        plugin.register()
 
         # restore original update checking value
         context.update_config({'check_updates_on_open': original_update_chk})
@@ -31,6 +30,7 @@ def show():
     else:
         # start plugin manager normally
         plugin = plugins.PluginManager()
+        plugin.register()
 
     context.signals.opening.emit()
 
@@ -42,5 +42,3 @@ def show():
         return context.app.exec_()
     finally:
         context.signals.closing.emit()
-
-    return 1

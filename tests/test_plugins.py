@@ -21,13 +21,13 @@ def plugin():
 
 
 def test_plugin_manager(plugin_manager):
-    expected = 'foo'
+    mock = dict()
 
     plugin_code = '''
-def plugin():
-    return 'foo'
+def plugin(mock):
+    mock['test'] = 'foo'
 '''
     manager = plugin_manager(plugin_code)
-    manager.register_from_paths()
+    manager.register_from_paths(mock)
 
-    assert manager._objs[0] == expected
+    assert mock == dict(test='foo')
