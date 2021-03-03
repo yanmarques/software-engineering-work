@@ -56,3 +56,8 @@ Porém isso terá o custo de que estas versões ainda não foram testadas devida
 
 Deseja continuar?
 '''
+
+update_check_timed_out = '''
+Aconteceu um problema ao verificar as atualizações.
+Verifique sua conexão com a internet. 
+'''

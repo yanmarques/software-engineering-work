@@ -5,27 +5,24 @@ from . import (
     texts,
     autoupdate,
 )
-from .. import util, help
-from ..settings import PluginTab
-from ... import widgets
-from ...app import context
+from .. import util, help, settings
+from ... import widgets, app
 from PyQt5 import QtWidgets, QtCore, QtGui
+from requests.exceptions import ConnectTimeout
 
 import platform
 import webbrowser
 import os
 
 
-class UpdateCheckerRunnable(QtCore.QThread):
-    done = QtCore.pyqtSignal(bool)
-
+class UpdateCheckerRunnable(util.GenericCallbackRunner):
     def __init__(self):
-        super().__init__()
+        super().__init__(self.callback)
         self.update_checker = checker.UpdateChecker()
+        self.has_updates = False
 
-    def run(self):
-        has_updates = self.update_checker.check()
-        self.done.emit(has_updates)
+    def callback(self):
+        self.has_updates = self.update_checker.check()
 
 
 class UpdateUserInterface(QtWidgets.QDialog, screen.Ui_Dialog):
@@ -41,15 +38,23 @@ class UpdateUserInterface(QtWidgets.QDialog, screen.Ui_Dialog):
 
         self.checker_runner = UpdateCheckerRunnable()
         self.checker_runner.done.connect(self._on_update_check)
+        self.checker_runner.err.connect(self._on_error)
         self.checker_runner.start()
 
-    def _on_update_check(self, has_updates):
+    def _on_update_check(self):
         self.loading.do_stop.emit()
 
-        if has_updates:
+        if self.checker_runner.has_updates:
             DownloadLatestVersion(self.checker_runner.update_checker)
         else:
             self.no_updates.emit()
+
+    def _on_error(self, error):
+        self.loading.do_stop.emit()
+        if isinstance(error, ConnectTimeout):
+            util.show_dialog(texts.update_check_timed_out, 
+                             icon=QtWidgets.QMessageBox.Warning,
+                             parent=self)
 
 
 class DownloadLatestVersion(widgets.ConfirmationMessageBox):
@@ -95,7 +100,7 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
         keep_using.setText(texts.keep_using_after_update_downloaded)
         if not keep_using.is_accepted():
             # get the hell out
-            context.exit()
+            app.context.exit()
 
     def _show_update_instructions(self, asset_name):
         instructions = {
@@ -133,15 +138,15 @@ class DownloadLatestVersion(widgets.ConfirmationMessageBox):
         msg.exec_()
 
 
-class UpdatesPlugin(PluginTab):
+class UpdatesPlugin(settings.PluginTab):
     def init(self):
         # maybe app will exit here
         autoupdate.maybe_install_update()
 
         # we can safely connect to this custom signal here
-        context.signals.help_menu.connect(self.add_menu_action)     # pylint: disable=E1101
+        app.context.signals.help_menu.connect(self.add_menu_action)     # pylint: disable=E1101
 
-        context.fix_config(setting.default_settings)
+        app.context.fix_config(setting.default_settings)
         if setting.CheckUpdatesOnOpenSetting.get():
             UpdateUserInterface().exec_()
 

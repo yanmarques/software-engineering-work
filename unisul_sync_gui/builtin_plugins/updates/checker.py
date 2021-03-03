@@ -129,12 +129,13 @@ class VersionsParseFailure(Exception):
 
 
 class UpdateChecker:
-    def __init__(self):
+    def __init__(self, timeout=10):
+        self.timeout = timeout
         self.latest_version = None
 
     def check(self):
         path = '/refs-tags/master?source_action=disambiguate&source_controller=files&tag_name=master&q='
-        response = requests.get(url(path))
+        response = requests.get(url(path), timeout=self.timeout)
         return self.check_response(response)
     
     def check_response(self, response):
