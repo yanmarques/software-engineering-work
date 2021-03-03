@@ -1,14 +1,16 @@
-from . import cookies
+from . import cookies, __version__
 from .book_bot import settings as default_crawler_settings
 from .config import path_name_of
 from .app import context
 from scrapy.crawler import CrawlerRunner
 from crochet import setup, wait_for
+
+# config global reactor interface
 setup()
 
 
 def crawl(spider, settings={}, timeout=10.0, *args, **kwargs):
-    for k, v in _default_settings().items():
+    for k, v in get_default_settings().items():
         settings.setdefault(k, v)
 
     @wait_for(timeout=timeout)
@@ -19,9 +21,9 @@ def crawl(spider, settings={}, timeout=10.0, *args, **kwargs):
     return wrapper()
 
 
-def _default_settings():
-    defaults = _get_from_project()
-    defaults.setdefault('USER_AGENT', 'UnisulSync v0.0.0')
+def get_default_settings():
+    defaults = parse_scrapy_settings(default_crawler_settings)
+    defaults.setdefault('USER_AGENT', f'UnisulSync {__version__}')
     defaults.setdefault('COOKIES_PERSISTENCE_DIR', cookies.cookie_name())
 
     for k, v in context.config.get('crawler_settings', {}).items():
@@ -30,9 +32,9 @@ def _default_settings():
     return defaults
 
 
-def _get_from_project():
+def parse_scrapy_settings(settings):
     defaults = {}
-    for key in dir(default_crawler_settings):
+    for key in dir(settings):
         if not key.startswith('__'):
-            defaults[key] = getattr(default_crawler_settings, key)
+            defaults[key] = getattr(settings, key)
     return defaults
