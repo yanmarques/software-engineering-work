@@ -8,11 +8,13 @@ class FakeDumper(abc.IODumper):
     def write_fp(self, fp, data, **kwargs):
         pass
 
+    def read_fp(self, fp, **kwargs):
+        pass
+
 
 class FakeExporter(abc.ListExporter):
-    def __init__(self, path):
-        dumper = FakeDumper(path)
-        super().__init__(dumper)
+    def dumper_factory(self, path):
+        return FakeDumper(path)
     
     def should_export(self):
         return True

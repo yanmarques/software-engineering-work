@@ -12,20 +12,35 @@ class IODumper(ABC):
 
         super().__init__()
         self.path = file_path
+        self.default_encoding = 'utf-8'
     
     @abstractmethod
     def write_fp(self, fp, data, **kwargs):
         pass
 
+    @abstractmethod
+    def read_fp(self, fp, **kwargs):
+        pass
+
     def dump(self, data, **kwargs):
-        encoding = kwargs.get('encoding', 'utf-8')
-        with open(self.path, 'w', encoding=encoding) as fp:
-            self.write_fp(fp, data, **kwargs)
+        write_cb = self.write_fp
+        return self._open_with(write_cb, 'w', data, **kwargs)
+
+    def load(self, **kwargs):
+        read_cb = self.read_fp
+        return self._open_with(read_cb, 'r', **kwargs)
+
+    def _open_with(self, cb, mode, *args, **kwargs):
+        encoding = kwargs.get('encoding', self.default_encoding)
+        with open(self.path, mode, encoding=encoding) as fp:
+            return cb(fp, *args, **kwargs)
 
 
 class BaseExporter(ABC):
     def __init__(self,
-                 dumper: IODumper):
+                 *args,
+                 dumper: IODumper = None,
+                 **kwargs):
         '''
         Export manager with a generic processing function.
 
@@ -34,7 +49,8 @@ class BaseExporter(ABC):
 
         super().__init__()
 
-        self.dumper = dumper
+        self.dumper = dumper or \
+                      self.dumper_factory(*args, **kwargs)
 
         # hold valid items to export
         self.exported_items = None
@@ -42,6 +58,10 @@ class BaseExporter(ABC):
         # parameters received on export() function
         self.items = None
         self.item = None
+
+    @abstractmethod
+    def dumper_factory(self, *args, **kwargs):
+        pass
 
     @abstractmethod
     def should_export(self):
