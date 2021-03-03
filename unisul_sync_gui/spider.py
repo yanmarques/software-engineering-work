@@ -22,7 +22,7 @@ def crawl(spider, settings={}, timeout=10.0, *args, **kwargs):
 
 
 def get_default_settings():
-    defaults = parse_scrapy_settings(default_crawler_settings)
+    defaults = get_project_settings()
     defaults.setdefault('USER_AGENT', f'UnisulSync {__version__}')
     defaults.setdefault('COOKIES_PERSISTENCE_DIR', cookies.cookie_name())
 
@@ -30,6 +30,10 @@ def get_default_settings():
         defaults[k] = v
 
     return defaults
+
+
+def get_project_settings():
+    return parse_scrapy_settings(default_crawler_settings)
 
 
 def parse_scrapy_settings(settings):

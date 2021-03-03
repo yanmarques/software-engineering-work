@@ -63,7 +63,7 @@ class BaseMediaLoader(abc.ABC):
 
     @cached_property
     def _crawler_default_settings(self):
-        return spider._get_from_project()
+        return spider.get_project_settings()
 
 
 class SubjectMediaLoader(BaseMediaLoader):
