@@ -1,5 +1,9 @@
 
-from . import settings, builtin_plugins, config
+from . import (
+    settings, 
+    builtin_plugins, 
+    config,
+)
 
 import os
 import sys
@@ -7,8 +11,8 @@ import platform
 import importlib
 
 
-def scan_modules():
-    for directory in default_paths():
+def scan_modules(paths):
+    for directory in paths:
         if os.path.exists(directory):
             for path in os.listdir(directory):
                 full_path = os.path.join(directory, path) 
@@ -26,39 +30,44 @@ def default_paths():
     paths = platforms.get(platform.system(), 
                           settings.PLUGIN_PATHS)
 
+    # default user configuration plugins
     paths.append(config.path_name_of('plugins'))
 
     return list(map(os.path.expanduser, paths))
 
 
-def maybe_call(obj, fn_name, *args, **kwargs):
-    if hasattr(obj, fn_name):
-        result = getattr(obj, fn_name)(*args, **kwargs)
-        return (result)
-
-
 class PluginManager:
-    def __init__(self):
-        self.objs = []
-        self._register_modules()
+    def __init__(self, paths: list = None):
+        self.paths = paths or default_paths()
+        self._objs = []
+        self._sys_path = sys.path.copy()
 
-    def _register_modules(self, *args, **kwargs):
-        for module in builtin_plugins.available_modules():
-            klass = module.plugin(*args, **kwargs)
-            self.objs.append(klass)
+    def register(self, *args, **kwargs):
+        self.register_builtins(*args, **kwargs)
+        self.register_from_paths(*args, **kwargs)
 
-        source_path = sys.path.copy() 
-
+    def register_from_paths(self, *args, **kwargs):
         try:
-            for directory, module_path in scan_modules():
+            for directory, module_path in scan_modules(self.paths):
                 # make python see our module
                 sys.path.append(directory)
 
                 module = importlib.import_module(module_path)
-                klass = module.plugin(*args, **kwargs)
-                self.objs.append(klass)
+                self._load_module(module, *args, **kwargs)
 
                 # restore path
-                sys.path = source_path
+                self._reset_sys_path()
         finally:
-            sys.path = source_path
+            self._reset_sys_path()
+
+    def register_builtins(self, *args, **kwargs):
+        for module in builtin_plugins.available_modules():
+            self._load_module(module, *args, **kwargs)
+
+    def _load_module(self, module, *args, **kwargs):
+        result = module.plugin(*args, **kwargs)
+        if result is not None:
+            self._objs.append(result)
+
+    def _reset_sys_path(self):
+        sys.path = self._sys_path
