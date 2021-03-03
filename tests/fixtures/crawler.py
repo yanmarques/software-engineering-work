@@ -1,5 +1,5 @@
 import pytest
-from unisul_sync_gui.crawler import abc
+from unisul_sync_gui.crawler import abc, json
 
 from pathlib import Path
 
@@ -18,6 +18,13 @@ class FakeExporter(abc.ListExporter):
     
     def should_export(self, item):
         return True
+
+
+@pytest.fixture
+def json_dumper(tmp_path):
+    file_path = tmp_path / Path('out')
+    dumper = json.JsonDumper(file_path)
+    return dumper
 
 
 @pytest.fixture
