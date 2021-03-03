@@ -39,6 +39,7 @@ def default_paths():
 class PluginManager:
     def __init__(self, paths: list = None):
         self.paths = paths or default_paths()
+        self._objs = []
         self._sys_path = sys.path.copy()
 
     def register(self, *args, **kwargs):
@@ -64,7 +65,9 @@ class PluginManager:
             self._load_module(module, *args, **kwargs)
 
     def _load_module(self, module, *args, **kwargs):
-        module.plugin(*args, **kwargs)
+        result = module.plugin(*args, **kwargs)
+        if result is not None:
+            self._objs.append(result)
         
     def _reset_sys_path(self):
         sys.path = self._sys_path
