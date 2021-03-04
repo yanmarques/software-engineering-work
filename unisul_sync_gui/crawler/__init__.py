@@ -1,1 +1,4 @@
-from .api import AsyncCrawler
+from .api import (
+    AsyncCrawler, 
+    MiddlewareAwareCrawler,
+)

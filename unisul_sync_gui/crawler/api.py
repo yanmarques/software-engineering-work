@@ -83,26 +83,26 @@ class MiddlewareAwareCrawler(AsyncCrawler):
         self.middleware = middleware
 
     async def _with_response(self, request, response):
-        self.middleware.on_response(response)
+        await self.middleware.on_response(response)
         
         try:
             result = await super()._with_response(request, response)
-            self.middleware.on_processed_response(result)
+            await self.middleware.on_processed_response(result)
         except Exception as exc:
-            self._on_error(self.middleware.on_response_process_error,
+            await self._on_error(self.middleware.on_response_process_error,
                            exc, 
                            response)
 
     async def _handle_request(self, session, request):
-        self.middleware.on_request(request)
+        await self.middleware.on_request(request)
 
         try:
             await super()._handle_request(session, request)
         except Exception as exc:
-            self._on_error(self.middleware.on_request_error,
+            await self._on_error(self.middleware.on_request_error,
                            exc, 
                            request)
 
-    def _on_error(self, cb, error, *args):
-        if cb(error, *args) is not True:
+    async def _on_error(self, cb, error, *args):
+        if await cb(error, *args) is not True:
             raise error

@@ -152,21 +152,21 @@ class Middleware(ABC):
         self.spider = spider
 
     @abstractmethod
-    def on_request(self, request):
+    async def on_request(self, request):
         pass
 
     @abstractmethod
-    def on_response(self, response):
+    async def on_response(self, response):
         pass
 
     @abstractmethod
-    def on_processed_response(self, result):
+    async def on_processed_response(self, result):
         pass
 
     @abstractmethod
-    def on_request_error(self, error, request):
+    async def on_request_error(self, error, request):
         pass
 
     @abstractmethod
-    def on_response_process_error(self, error, response):
+    async def on_response_process_error(self, error, response):
         pass

@@ -53,6 +53,33 @@ class FakeContext:
         yield
 
 
+class FakeMiddleware(abc.Middleware):
+    async def on_request(self, request):
+        pass
+
+    async def on_response(self, response):
+        pass
+
+    async def on_request_error(self, error, request):
+        pass
+
+    async def on_response_process_error(self, error, response):
+        pass
+
+    async def on_processed_response(self, result):
+        pass
+
+    
+@pytest.fixture
+def middleware_factory():
+    return FakeMiddleware
+
+
+@pytest.fixture
+def fake_middleware(middleware_factory, fake_spider):
+    return middleware_factory(fake_spider)
+
+
 @pytest.fixture
 def fake_spider(spider_factory):
     request = http.Request(url='/', 
