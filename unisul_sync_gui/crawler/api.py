@@ -75,7 +75,10 @@ class AsyncRunner:
             kwargs = self._prepare_req(request)
 
             async with session.request(**kwargs) as response:
-                request.callback(response, request)
+                self._with_response(request, response)
+
+    def _with_response(self, request, response):
+        request.callback(response, request)
 
     async def _run(self):
         # orchestrate the limit of parallel workers
