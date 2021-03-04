@@ -1,5 +1,5 @@
-from abc import ABC, abstractmethod
-from typing import Any
+from abc import ABC, abstractmethod, abstractproperty
+from typing import Any, Generator
 
 
 class IODumper(ABC):
@@ -106,3 +106,51 @@ class ListExporter(BaseExporter):
 
     def add_item_to_export_list(self, item):
         self.exported_items.append(item)
+
+
+class objectview(object):
+    def __init__(self, **kwargs):
+        self.__dict__ = kwargs
+
+    def update(self, **kwargs):
+        self.__dict__.update(**kwargs)
+
+    def setdefault(self, key, value):
+        self.__dict__.setdefault(key, value)
+
+    def to_dict(self):
+        return self.__dict__.copy()
+
+
+class Request(objectview):
+    def __init__(self, **kwargs):
+        '''
+        Represents a http request object.
+
+        url: Relative url of web request.
+        callback: Required keyword argument.
+        '''
+        super().__init__(**kwargs)
+
+        if 'url' not in self.to_dict():
+            raise ValueError('Missing "url" parameter')
+
+        if 'callback' not in self.to_dict():
+            raise ValueError('Missing "callback" parameter')
+            
+        # default http method: GET
+        self.setdefault('method', 'get')
+
+
+class Spider(ABC):
+    '''
+    Spider represents the information needed to start a crawler.
+    '''
+
+    domain = None
+    scheme = 'https'
+
+    @abstractmethod
+    def start_requests(self) -> Generator:
+        pass
+    
