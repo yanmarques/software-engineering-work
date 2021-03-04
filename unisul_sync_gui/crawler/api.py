@@ -43,13 +43,19 @@ class AsyncCrawler:
                         session: aiohttp.ClientSession,
                         request: http.Request):
         async with semaphore:
-            kwargs = self._prepare_req(request)
+            await self._handle_request(session, request)
 
-            async with session.request(**kwargs) as response:
-                self._with_response(request, response)
+    async def _with_response(self, request, response):
+        return request.callback(response, request)
 
-    def _with_response(self, request, response):
-        request.callback(response, request)
+    async def _handle_request(self, 
+                        session: aiohttp.ClientSession, 
+                        request: http.Request):
+        # transform request object into a dict
+        kwargs = self._prepare_req(request)
+
+        async with session.request(**kwargs) as response:
+            await self._with_response(request, response)
 
     async def _run(self):
         # orchestrate the limit of parallel workers
@@ -60,3 +66,43 @@ class AsyncCrawler:
                        for request in self.spider.start_requests()]
 
             await asyncio.gather(*futures)
+
+
+class MiddlewareAwareCrawler(AsyncCrawler):
+    def __init__(self,
+                 middleware: abc.Middleware, 
+                 *args, 
+                 **kwargs) -> None:
+        '''
+        Regular crawler that intercept strategic method calls and
+        dispatch them to the middleware.
+
+        middleware: Listens to a number of events.
+        '''
+        super().__init__(middleware.spider, *args, **kwargs)
+        self.middleware = middleware
+
+    async def _with_response(self, request, response):
+        self.middleware.on_response(response)
+        
+        try:
+            result = await super()._with_response(request, response)
+            self.middleware.on_processed_response(result)
+        except Exception as exc:
+            self._on_error(self.middleware.on_response_process_error,
+                           exc, 
+                           response)
+
+    async def _handle_request(self, session, request):
+        self.middleware.on_request(request)
+
+        try:
+            await super()._handle_request(session, request)
+        except Exception as exc:
+            self._on_error(self.middleware.on_request_error,
+                           exc, 
+                           request)
+
+    def _on_error(self, cb, error, *args):
+        if cb(error, *args) is not True:
+            raise error

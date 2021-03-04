@@ -140,3 +140,33 @@ class Spider(ABC):
     def start_requests(self) -> Generator:
         pass
     
+
+class Middleware(ABC):
+    def __init__(self, spider: Spider) -> None:
+        '''
+        Hooks into crawler's execution.
+
+        spider: Target spider that will be crawled.
+        '''
+        super().__init__()
+        self.spider = spider
+
+    @abstractmethod
+    def on_request(self, request):
+        pass
+
+    @abstractmethod
+    def on_response(self, response):
+        pass
+
+    @abstractmethod
+    def on_processed_response(self, result):
+        pass
+
+    @abstractmethod
+    def on_request_error(self, error, request):
+        pass
+
+    @abstractmethod
+    def on_response_process_error(self, error, response):
+        pass

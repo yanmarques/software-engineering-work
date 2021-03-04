@@ -1,11 +1,11 @@
 import pytest
-from unisul_sync_gui.crawler import abc, http
+from unisul_sync_gui.crawler import http
 from unisul_sync_gui.crawler.api import (
     AsyncCrawler, 
+    MiddlewareAwareCrawler,
 )
 
-from urllib.parse import urlparse
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 
 
 def test_google_returns_200_ok(spider_factory):
@@ -40,3 +40,73 @@ def test_fails_when_callback_fail(spider_factory, crawler_factory):
 
     with pytest.raises(NameError):
         runner.start()
+
+
+def test_middleware_crawler_calls_success_events(fake_spider, mock_crawler_session):
+    mock = Mock()
+    mock.spider = fake_spider
+
+    crawler = MiddlewareAwareCrawler(mock)
+    mock_crawler_session(crawler)
+
+    crawler.start()
+
+    mock.on_request.assert_called()
+    mock.on_response.assert_called()
+    mock.on_processed_response.assert_called()
+
+
+def test_middleware_crawler_calls_process_error_events(spider_factory, mock_crawler_session):
+    def process(_, __):
+        raise NameError('any')
+
+    request = http.Request(url='/', callback=process)
+    spider = spider_factory(request)
+
+    middleware = Mock()
+    middleware.spider = spider
+
+    crawler = MiddlewareAwareCrawler(middleware)
+    mock_crawler_session(crawler)
+
+    with pytest.raises(NameError):
+        crawler.start()
+
+    middleware.on_response_process_error.assert_called()
+
+
+def test_middleware_crawler_calls_request_error_events(fake_spider, mock_crawler_session):
+    middleware = Mock()
+    middleware.spider = fake_spider
+
+    crawler = MiddlewareAwareCrawler(middleware)
+
+    def request_ctx(*_, **__):
+        raise NameError('any')
+
+    mock_crawler_session(crawler, mock=request_ctx)
+
+    with pytest.raises(NameError):
+        crawler.start()
+
+    middleware.on_request_error.assert_called()
+
+
+def test_middleware_crawler_keep_going_on_error_when_return_true(fake_spider, 
+                                                                 mock_crawler_session):
+    middleware = Mock()
+    middleware.spider = fake_spider
+
+    # mock function that return True
+    middleware.on_request_error = lambda *_, **__: True
+
+    crawler = MiddlewareAwareCrawler(middleware)
+
+    def request_ctx(*_, **__):
+        raise NameError('any')
+
+    mock_crawler_session(crawler, mock=request_ctx)
+
+    crawler.start()
+
+    middleware.on_request_error.assert_called()

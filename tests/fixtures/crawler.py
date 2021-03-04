@@ -54,6 +54,13 @@ class FakeContext:
 
 
 @pytest.fixture
+def fake_spider(spider_factory):
+    request = http.Request(url='/', 
+                           callback=lambda *_, **__: None)
+    return spider_factory(request)
+
+
+@pytest.fixture
 def assert_crawl_urls(spider_factory, crawler_factory):
     def wrapper(expected, inputs=None):
         inputs = inputs or expected
@@ -81,17 +88,25 @@ def spider_factory():
 
 
 @pytest.fixture
-def crawler_factory():
-    def wrapper(spider):
-        runner = AsyncCrawler(spider)
-        old_http_req = runner._http_req
-        
+def mock_crawler_session():
+    def wrapper(crawler, mock=FakeContext):
+        old_http_req = crawler._http_req
+            
         async def _http_req(_, session, __):
-            session.request = FakeContext
+            session.request = mock
             await old_http_req(_, session, __)
 
-        runner._http_req = _http_req
-        return runner
+        crawler._http_req = _http_req
+        return crawler
+    return wrapper
+
+
+@pytest.fixture
+def crawler_factory(mock_crawler_session):
+    def wrapper(spider):
+        crawler = AsyncCrawler(spider)
+        return mock_crawler_session(crawler)
+        
     return wrapper
 
 
