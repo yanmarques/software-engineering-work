@@ -34,7 +34,7 @@ def parse_request_url(url: str, spider: abc.Spider):
     return parse.geturl()
 
 
-class AsyncRunner:
+class AsyncCrawler:
     def __init__(self,
                  spider: abc.Spider,
                  session_factory=None,

@@ -1,5 +1,5 @@
 import pytest
-from unisul_sync_gui.crawler import abc, json, AsyncRunner
+from unisul_sync_gui.crawler import abc, json, AsyncCrawler
 
 from pathlib import Path
 
@@ -78,7 +78,7 @@ def spider_factory():
 @pytest.fixture
 def crawler_factory():
     def wrapper(spider):
-        runner = AsyncRunner(spider)
+        runner = AsyncCrawler(spider)
         old_http_req = runner._http_req
         
         async def _http_req(_, session, __):

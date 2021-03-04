@@ -1,7 +1,7 @@
 import pytest
 from unisul_sync_gui.crawler import abc
 from unisul_sync_gui.crawler.api import (
-    AsyncRunner, 
+    AsyncCrawler, 
     parse_request_url,
 )
 
@@ -19,7 +19,7 @@ def test_google_returns_200_ok(spider_factory):
                           callback=mock)
     spider = spider_factory(request)
 
-    runner = AsyncRunner(spider)
+    runner = AsyncCrawler(spider)
     runner.start()
 
     mock.assert_called_once()
