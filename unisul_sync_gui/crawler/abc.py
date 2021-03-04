@@ -147,7 +147,13 @@ class Spider(ABC):
     Spider represents the information needed to start a crawler.
     '''
 
+    # Used for the crawler to resolve relative urls.
     domain = None
+
+    # Used for the crawler to add a default path preffix.
+    preffix = None
+
+    # Used for the crawler to set a default url scheme.
     scheme = 'https'
 
     @abstractmethod
