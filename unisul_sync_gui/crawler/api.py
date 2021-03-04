@@ -44,6 +44,7 @@ class AsyncRunner:
 
         spider: Holds information about what requests to make.
         session_factory: Factory function that returns a `aiohttp.ClientSession`.
+        limit: Maximum number of parallel tasks. Default: 1.
         '''
 
         self.spider = spider
