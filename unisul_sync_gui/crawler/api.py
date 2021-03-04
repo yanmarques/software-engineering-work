@@ -1,37 +1,7 @@
 import aiohttp
-from . import abc
+from . import abc, http
 
-import os
 import asyncio
-from urllib.parse import urlparse
-
-
-def parse_request_url(url: str, spider: abc.Spider):
-    '''
-    Transform the url according to spider settings.
-    '''
-
-    parse = urlparse(url)
-
-    # relative urls
-    if parse.netloc == '':
-        if spider.domain is None:
-            raise ValueError('Spider has no default domain')
-
-        # set spider domain and scheme
-        kwargs = dict(netloc=spider.domain,
-                      scheme=spider.scheme)
-
-        # needs a path preffix
-        if spider.preffix is not None:
-            preffixed_path = os.path.join(spider.preffix,
-                                          parse.path.lstrip('/'))
-            kwargs.update(path=preffixed_path)
-
-        # fix url
-        parse = parse._replace(**kwargs)
-
-    return parse.geturl()
 
 
 class AsyncCrawler:
@@ -55,8 +25,8 @@ class AsyncCrawler:
     def start(self):
         self.loop.run_until_complete(self._run())
 
-    def _prepare_req(self, request: abc.Request):
-        url = parse_request_url(request.url, self.spider)
+    def _prepare_req(self, request: http.Request):
+        url = request.parse_url(self.spider)
 
         # set new url
         request.update(url=url)
@@ -71,7 +41,7 @@ class AsyncCrawler:
     async def _http_req(self,
                         semaphore: asyncio.Semaphore, 
                         session: aiohttp.ClientSession,
-                        request: abc.Request):
+                        request: http.Request):
         async with semaphore:
             kwargs = self._prepare_req(request)
 

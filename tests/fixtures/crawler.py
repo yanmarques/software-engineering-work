@@ -1,5 +1,10 @@
 import pytest
-from unisul_sync_gui.crawler import abc, json, AsyncCrawler
+from unisul_sync_gui.crawler import (
+    abc, 
+    json, 
+    http,
+    AsyncCrawler,
+)
 
 from pathlib import Path
 
@@ -25,7 +30,7 @@ class FakeSpider(abc.Spider):
 
     def __init__(self, requests) -> None:
         super().__init__()
-        if isinstance(requests, abc.Request):
+        if isinstance(requests, http.Request):
             requests = [requests]
         self.requests = requests
 
@@ -59,7 +64,7 @@ def assert_crawl_urls(spider_factory, crawler_factory):
 
         def workers():
             for i in inputs:
-                yield abc.Request(url=i, callback=test_request)
+                yield http.Request(url=i, callback=test_request)
 
         spider = spider_factory(workers())
 

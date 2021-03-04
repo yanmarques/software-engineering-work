@@ -122,26 +122,6 @@ class objectview(object):
         return self.__dict__.copy()
 
 
-class Request(objectview):
-    def __init__(self, **kwargs):
-        '''
-        Represents a http request object.
-
-        url: Relative url of web request.
-        callback: Required keyword argument.
-        '''
-        super().__init__(**kwargs)
-
-        if 'url' not in self.to_dict():
-            raise ValueError('Missing "url" parameter')
-
-        if 'callback' not in self.to_dict():
-            raise ValueError('Missing "callback" parameter')
-            
-        # default http method: GET
-        self.setdefault('method', 'get')
-
-
 class Spider(ABC):
     '''
     Spider represents the information needed to start a crawler.
