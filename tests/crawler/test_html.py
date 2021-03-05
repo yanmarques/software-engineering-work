@@ -59,7 +59,7 @@ async def test_item_loader_with_many_keys():
 
 
 @pytest.mark.asyncio
-async def test_item_loader_with_not_valid_xpaths():
+async def test_item_loader_with_not_valid_xpaths_raises_when_instructed_to():
     response = Mock()
     response.text = make_mocked_coro(fake_document)
 
@@ -67,7 +67,7 @@ async def test_item_loader_with_not_valid_xpaths():
     builder = html.ItemBuilder(dict, parser)
 
     with pytest.raises(ValueError):
-        builder.add_xpath('foo', './/*[@id="not-exist"]')
+        builder.add_xpath('foo', './/*[@id="not-exist"]', raises=True)
 
 
 @pytest.mark.asyncio
@@ -100,3 +100,17 @@ async def test_item_loader_value_along_with_xpath():
     result = builder.build()
 
     assert result == expected
+
+
+@pytest.mark.asyncio
+async def test_item_loader_with_invalid_xpath_set_default_value():
+    response = Mock()
+    response.text = make_mocked_coro(fake_document)
+
+    parser = await html.parse(response)
+    builder = html.ItemBuilder(dict, parser)
+
+    builder.add_xpath('foo', './/*[@id="not-exist"]', default='default')
+
+    result = builder.build()
+    assert result == dict(foo='default')
