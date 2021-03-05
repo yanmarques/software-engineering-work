@@ -24,7 +24,7 @@ class ItemBuilder:
 
         self.factory = factory
         self.parser = parser
-        self._values = {}
+        self._params = {}
 
     def add_xpath(self, key, xpath):
         el = self.parser.xpath(xpath)
@@ -32,8 +32,11 @@ class ItemBuilder:
             raise ValueError(f'Provided xpath returned empty: {xpath}')
         
         value = el[0].text_content()
-        self._values[key] = value
+        self.add_value(key, value)
+
+    def add_value(self, key, value):
+        self._params[key] = value
 
     def build(self):
-        return self.factory(**self._values)
+        return self.factory(**self._params)
 
