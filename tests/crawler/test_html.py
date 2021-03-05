@@ -34,7 +34,7 @@ async def test_item_loader_with_valid_xpaths():
     parser = await html.parse(response)
     builder = html.ItemBuilder(dict, parser)
 
-    builder.add_xpath(expected, './/*[@id="test"]')
+    builder.add_xpath(expected, './/*[@id="test"]/text()')
     result = builder.build()
 
     assert isinstance(result, dict) and \
@@ -51,7 +51,7 @@ async def test_item_loader_with_many_keys():
     builder = html.ItemBuilder(dict, parser)
 
     for key in expecteds:
-        builder.add_xpath(key, './/*[@id="test"]')
+        builder.add_xpath(key, './/*[@id="test"]/text()')
 
     result = builder.build()
 
@@ -94,7 +94,7 @@ async def test_item_loader_value_along_with_xpath():
     parser = await html.parse(response)
     builder = html.ItemBuilder(dict, parser)
 
-    builder.add_xpath('foo', './/*[@id="test"]')
+    builder.add_xpath('foo', './/*[@id="test"]/text()')
     builder.add_value('value', 'raw')
 
     result = builder.build()

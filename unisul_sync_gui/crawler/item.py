@@ -49,7 +49,6 @@ class Item:
         '''
 
         for field in dataclasses.fields(self):
-            print(field)
             # dummy processor that returns what is passed
             processor = lambda v: v
 
@@ -58,7 +57,6 @@ class Item:
             elif field.type is Text:
                 processor = text_processor()
 
-            print(processor)
             original_value = getattr(self, field.name)
             output = processor(original_value)
             setattr(self, field.name, output)

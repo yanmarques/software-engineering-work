@@ -1,3 +1,4 @@
+from . import loaders
 from ....crawler import http, abc
 
 
@@ -20,8 +21,9 @@ class SubjectSpider(AbstractEvaSpider):
                            params=self.subject_args, 
                            callback=self.parse_subjects)
 
-    def parse_subjects(self, response, request):
-        pass
+    async def parse_subjects(self, response, request):
+        loader = loaders.SubjectLoader()
+        return await loader.load(response)
 
 
 class BookSpider:

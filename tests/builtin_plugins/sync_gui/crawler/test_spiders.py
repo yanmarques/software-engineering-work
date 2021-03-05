@@ -1,24 +1,26 @@
-from unisul_sync_gui.builtin_plugins.sync_gui.crawler import spiders
-from unisul_sync_gui.app import context
-from unisul_sync_gui.crawler import (
-    MiddlewareAwareCrawler,
+from unisul_sync_gui.builtin_plugins.sync_gui.crawler import (
+    spiders,
+    items,
 )
 
-from aiohttp.test_utils import make_mocked_coro
 
-
-class CrawlerSessionPatched(MiddlewareAwareCrawler):
-    async def _handle_request(self, session, request):
-        session.cookie_jar.update_cookies(context.http_session.cookies)
-        return await super()._handle_request(session, request)
-
-
-def test_subject_parser(middleware_factory):
+def test_subject_parser(middleware_factory, crawler_auth_factory):
     async def with_response(response):
         assert response.status == 200
 
     middleware = middleware_factory(spiders.SubjectSpider())
     middleware.on_response = with_response
 
-    crawler = MiddlewareAwareCrawler(middleware)
+    crawler = crawler_auth_factory(middleware)
+    crawler.start()
+
+
+def test_subject_parser_loader(middleware_factory, crawler_auth_factory):
+    async def with_subjects(subjects):
+        assert len(subjects) != 0
+
+    middleware = middleware_factory(spiders.SubjectSpider())
+    middleware.on_processed_response = with_subjects
+
+    crawler = crawler_auth_factory(middleware)
     crawler.start()

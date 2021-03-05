@@ -44,7 +44,7 @@ class ItemBuilder:
             raise ValueError(f'Provided xpath returned empty: {xpath}')
         
         if el:
-            value = el[0].text_content()
+            value = el[0]
         else:
             value = default
 

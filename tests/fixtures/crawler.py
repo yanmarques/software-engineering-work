@@ -5,6 +5,7 @@ from unisul_sync_gui.crawler import (
     http,
     AsyncCrawler,
 )
+from aiohttp.test_utils import make_mocked_coro
 
 from pathlib import Path
 
@@ -83,7 +84,7 @@ def fake_middleware(middleware_factory, fake_spider):
 @pytest.fixture
 def fake_spider(spider_factory):
     request = http.Request(url='/', 
-                           callback=lambda *_, **__: None)
+                           callback=make_mocked_coro())
     return spider_factory(request)
 
 
@@ -93,7 +94,7 @@ def assert_crawl_urls(spider_factory, crawler_factory):
         inputs = inputs or expected
         results = []
 
-        def test_request(_, request):
+        async def test_request(_, request):
             results.append(request.url)
 
         def workers():

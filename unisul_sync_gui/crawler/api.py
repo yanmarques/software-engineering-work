@@ -46,7 +46,7 @@ class AsyncCrawler:
             await self._handle_request(session, request)
 
     async def _with_response(self, request, response):
-        return request.callback(response, request)
+        return await request.callback(response, request)
 
     async def _handle_request(self, 
                         session: aiohttp.ClientSession, 

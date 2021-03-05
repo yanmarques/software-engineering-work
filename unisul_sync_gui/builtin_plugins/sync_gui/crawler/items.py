@@ -1,23 +1,40 @@
+from ....crawler import item
+
 import os
-from dataclasses import dataclass, field
+import dataclasses
+from urllib.parse import unquote
 
 
-@dataclass
-class Subject:
-    name = str
-    class_id = str
+def parse_subject_name(name):
+    fragments = name.split('-')
+
+    # TODO does this cover all cases?
+    if 'AOL' in fragments[0]:
+        return fragments[-1]
+    return fragments[-2]
+
+@dataclasses.dataclass
+class Subject(item.Item):
+    class_id: item.Text
+    name: str = item.field(
+        input_processor=item.text_processor(parse_subject_name)
+    )
 
 
-@dataclass
-class Book:
-    name = str
-    download_url = str
-    filename = str
-    subject = Subject
-    is_external = bool
-    seems_downloadable = field(default=True)
+@dataclasses.dataclass
+class Book(item.Item):
+    name: item.Text
+    filename: item.Text
+    subject: Subject
+    
+    download_url: str = item.field(
+        item.text_processor(unquote)
+    )
 
-    qs_file_arg = field(init=False, default='arquivo')
+    is_external: bool = dataclasses.field(default=False)
+    seems_downloadable: bool = dataclasses.field(default=True)
+
+    qs_file_arg = 'arquivo'
 
     @property
     def path(self):

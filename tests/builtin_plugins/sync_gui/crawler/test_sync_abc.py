@@ -24,7 +24,7 @@ class FakeDocumentLoader(abc.AbstractItemLoader):
         return './/body/div'
 
     def fill(self, builder) -> None:
-        builder.add_xpath('test', '.')
+        builder.add_xpath('test', './text()')
 
     def is_valid(self, item) -> bool:
         return True

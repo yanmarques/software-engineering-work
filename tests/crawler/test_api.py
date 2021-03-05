@@ -10,7 +10,7 @@ from aiohttp.test_utils import make_mocked_coro
 
 
 def test_google_returns_200_ok(spider_factory):
-    def assert_response_status(response, _):
+    async def assert_response_status(response, _):
         assert response.status == 200
 
     mock = MagicMock(side_effect=assert_response_status)
