@@ -1,5 +1,5 @@
-from . import abc
 from .items import Subject, Book
+from ....crawler import abc
 
 
 class SubjectLoader(abc.AbstractItemLoader):

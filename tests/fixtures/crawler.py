@@ -8,6 +8,19 @@ from unisul_sync_gui.crawler import (
 from aiohttp.test_utils import make_mocked_coro
 
 from pathlib import Path
+from unittest.mock import Mock
+
+fake_document = '''
+<html>
+    <body>
+        <div id='1'>foo</div>
+
+        <div id='2'>bar</div>
+
+        <div id='3'>baz</div>
+    </body>
+</html>
+'''
 
 
 class FakeDumper(abc.IODumper):
@@ -44,8 +57,8 @@ class FakeContext:
     def __init__(self, **kwargs) -> None:
         pass
 
-    def __aenter__(self):
-        return self
+    async def __aenter__(self):
+        return Mock()
 
     def __aexit__(self, *_):
         return self
@@ -70,7 +83,37 @@ class FakeMiddleware(abc.Middleware):
     async def on_processed_response(self, result):
         pass
 
-    
+
+class FakeDocumentLoader(abc.AbstractItemLoader):
+    def xpath_tree(self, response) -> str:
+        return './/body/div'
+
+    def fill(self, builder) -> None:
+        builder.add_xpath('test', './text()')
+
+    def is_valid(self, item) -> bool:
+        return True
+
+    def item_factory(self, **kwargs):
+        return dict(**kwargs)
+
+
+@pytest.fixture
+def fake_response():
+    response = Mock()
+    response.text = make_mocked_coro(fake_document)
+    return response
+
+
+@pytest.fixture
+def fake_loader(fake_response):
+    loader = FakeDocumentLoader()
+    old_fn = loader.load
+    load_patch = lambda *_, **__: old_fn(fake_response)
+    loader.load = load_patch
+    return loader
+
+
 @pytest.fixture
 def middleware_factory():
     return FakeMiddleware

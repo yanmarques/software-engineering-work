@@ -1,4 +1,7 @@
+import pytest
+
 import os
+from unittest.mock import Mock
 
     
 def test_exports_all(exp_write_args):
@@ -29,3 +32,51 @@ def test_io_export_use_utf8_by_default(mock_exporter_write):
     mock_exp = mock_exporter_write(assert_fp_is_utf8)
 
     mock_exp.export([])
+
+
+@pytest.mark.asyncio
+async def test_item_loader_with_all_items(fake_loader):
+    expected = [
+        {'test': 'foo',},
+        {'test': 'bar',},
+        {'test': 'baz',},
+    ]
+
+    result = await fake_loader.load()
+
+    assert result == expected
+
+
+@pytest.mark.asyncio
+async def test_item_loader_not_includes_invalid_item(fake_loader):
+    blacklist = ['foo']
+    expected = [
+        {'test': 'bar',},
+        {'test': 'baz',},
+    ]
+
+    # apply blacklist
+    fake_loader.is_valid = lambda item: item['test'] not in blacklist
+
+    result = await fake_loader.load()
+
+    assert result == expected
+
+
+@pytest.mark.asyncio
+async def test_item_loader_process_item_completely_changes_items(fake_loader):
+    expected = [1, 2, 3]
+    
+    fake_loader.process_item = Mock(side_effect=expected)
+
+    result = await fake_loader.load()
+
+    assert result == expected
+
+
+@pytest.mark.asyncio
+async def test_item_loader_fails_with_empty_xpath(fake_loader):
+    fake_loader.xpath_tree = Mock(return_value='.//*[@id="not-exists"]')
+
+    with pytest.raises(ValueError):
+        await fake_loader.load()

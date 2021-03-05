@@ -16,6 +16,7 @@ def crawler_auth_factory():
     auth_service = auth.Authenticator()
     if not auth_service.logged:
         auth_service.try_from_disk()
-        raise auth.AuthenticationException()
+        if not auth_service.logged:
+            raise auth.AuthenticationException()
     
     return CrawlerSessionPatched

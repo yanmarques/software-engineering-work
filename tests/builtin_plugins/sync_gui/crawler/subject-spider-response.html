@@ -1,0 +1,151 @@
+<style>
+	.tooltip-inner {
+		width: 185px;
+	}
+</style>
+<script>
+	window.history.pushState("/eadv4/", 'UNISUL - Espa&ccedil;o UnisulVirtual de Aprendizagem', "/eadv4/");
+</script>
+<h3 class="titulo-ua">
+	Disciplinas | Unidades de Aprendizagem
+</h3>
+<ol class="breadcrumb menu-superior">
+
+	<li class="text-success">Abertas</li>
+	<li><a class="carregarPagina text-muted" href="#" id="I"
+			data-url="/eadv4/listaDisciplina.processa?situacao=I">Agendadas</a></li>
+	<li><a class="carregarPagina text-muted" href="#" id="F"
+			data-url="/eadv4/listaDisciplina.processa?situacao=F">Finalizadas</a></li>
+</ol>
+<a href="#avisos" title="Calend&aacute;rio e Avisos" data-toggle="modal" data-target="#avisos"
+	class="aviso-mobile avisos2 text-vermelho visible-xs visible-sm">
+	<em class="fa fa-exclamation"></em> <span>Calend&aacute;rio e Avisos</span>
+</a>
+<div class="col-lg-4 aviso-direita hidden-xs hidden-sm">
+
+	<div class="col-lg-12">
+		<div class="panel panel-default topo-aviso">
+			<div id="tituloAlert" class="panel-heading">
+				<h4 class="panel-title titulo-avisos">Calend&aacute;rio</h4>
+				<a href="#" data-tool="panel-collapse" class="pull-right">
+					<em class="fa fa-minus"></em>
+				</a>
+			</div>
+			<div class="panel-wrapper collapse in">
+				<div class="panel-body list-group-item">
+					<div class="col-lg-12" id="calendar"></div>
+					<div class="col-lg-12">
+						<div class="inline-flex margem-topo-menor">
+							<div class="legendaVerde margem-direita-menor"></div>Data In&iacute;cio
+						</div>
+						<div class="inline-flex margem-topo-menor">
+							<div class="legendaVermelha margem-direita-menor diagonal-stripe-1"></div>Data Fim
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<script>
+			calendar("calendar", 0);
+		</script>
+	</div>
+</div>
+
+<div class="col-lg-8 position">
+
+	<div class="tab-content">
+		<div id="abertas" role="tabpanel" class="tab-pane active">
+
+			<style>
+				.tooltip-inner {
+					width: 185px;
+				}
+			</style>
+
+			<div class="row">
+				<div class="panel panel-default">
+					<div id="tituloGrad" role="tab" class="panel-heading">
+						<h4 class="panel-title text-laranja">Gradua&ccedil;&atilde;o</h4>
+						<a href="#" data-tool="panel-collapse" aria-expanded="true" class="pull-right"><em
+								class="fa fa-minus"></em></a>
+					</div>
+					<div id="grad" role="tabpanel" aria-labelledby="tituloUm" class="panel-collapse collapse in">
+						<div class="panel-body">
+							<p class="text-laranja nome-perfis">
+								<em class="fa fa-caret-right text-laranja"></em> Estudante
+							</p>
+							<div class="col-lg-12 espaco-abaixo-menor">
+								<div class="panel panel-default">
+
+									<div class="col-lg-12 fundo-branco b lista-uas cursor">
+
+										<a class="turmaSelecionada" data-carregando="false" data-turma_id="123"
+											data-tipo_conectado="S" data-ferramenta="mural" data-logo=""
+											data-estilo="1">
+											<p class="media-box-heading titulo-estudante text-azul">
+												AOL - UA - Foo
+											</p>
+										</a>
+
+										<div class="legenda text-success col-lg-8"><span
+												class="hidden-xs">Aberta&nbsp;de&nbsp;</span>22/02/21&nbsp;at�&nbsp;01/05/21
+										</div>
+
+									</div>
+
+									<div class="col-lg-12 fundo-branco b lista-uas cursor">
+
+										<a class="turmaSelecionada" data-carregando="false" data-turma_id="321"
+											data-tipo_conectado="S" data-ferramenta="mural" data-logo=""
+											data-estilo="1">
+											<p class="media-box-heading titulo-estudante text-azul">
+												AOL - UA - Bar
+											</p>
+										</a>
+
+										<div class="legenda text-success col-lg-8"><span
+												class="hidden-xs">Aberta&nbsp;de&nbsp;</span>22/02/21&nbsp;at�&nbsp;10/07/21
+										</div>
+									</div>
+
+									<div class="col-lg-12 fundo-branco b lista-uas cursor">
+
+										<a class="turmaSelecionada" data-carregando="false" data-turma_id="213"
+											data-tipo_conectado="S" data-ferramenta="mural" data-logo=""
+											data-estilo="1">
+											<p class="media-box-heading titulo-estudante text-azul">
+												AOL - UA - Baz
+											</p>
+										</a>
+										<div class="legenda text-success col-lg-8"><span
+												class="hidden-xs">Aberta&nbsp;de&nbsp;</span>22/02/21&nbsp;at�&nbsp;03/07/21
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<script>
+				$('[data-toggle="tooltip"]').tooltip();
+			</script>
+			<style>
+				.tooltip-inner {
+					width: 185px;
+				}
+			</style>
+			<style>
+				.tooltip-inner {
+					width: 185px;
+				}
+			</style>
+			<style>
+				.tooltip-inner {
+					width: 185px;
+				}
+			</style>
+		</div>
+	</div>
+
+</div>
