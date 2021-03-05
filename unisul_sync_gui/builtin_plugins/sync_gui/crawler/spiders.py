@@ -77,3 +77,60 @@ class BookSpider:
         new_args = BookSpider.book_args
         new_args['turmaIdSessao'] = subject_item['class_id']
         return new_args
+
+
+class FinishBook:
+    def set_fallback_filename(self, book):
+        book['filename'] = book['name']
+
+    def finish_parsing(self, book):
+        # default is not downloadable
+        book['seems_downloadable'] = False
+
+        parsed_url = urlparse(book['download_url'])
+        link_hostname = parsed_url.hostname
+
+        # is this an random internet link?
+        if link_hostname and link_hostname != http.EVA_DOMAIN:
+            book['is_external'] = True
+        else:
+            book['is_external'] = False
+
+            # try to retrieve filename from url
+            parsed_qs = parse_qs(parsed_url.query)
+            if Book.qs_file_arg in parsed_qs:
+                book['filename'] = parsed_qs[Book.qs_file_arg][0]
+
+                # assume it is always downloadable 
+                book['seems_downloadable'] = True
+                return book
+
+        # deduce which base url of the request
+        if book['is_external']:
+            # means no base url, the download_url attribute
+            # is already a full url
+            base_url = ''
+        else:
+            base_url = http.EVA_BASE_URL
+
+        def on_download_headers(response):
+            default_filename = http.urljoin(base_url, 
+                                            book['download_url'])
+            filename = None
+
+            try:
+                filename = http.parse_filename(response)
+                if filename:
+                    book['seems_downloadable'] = True
+            except FileNotFoundError:
+                pass
+
+            book['filename'] = filename or default_filename
+            return book
+
+        # we do not have the name yet
+        # so let's find it
+        return http.web_open(book['download_url'],
+                             base_url=base_url, 
+                             callback=on_download_headers,
+                             method='HEAD')
