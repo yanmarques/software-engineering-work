@@ -1,0 +1,39 @@
+from lxml import html
+from aiohttp.web import Response
+
+
+async def parse(response: Response) -> html.HtmlElement:
+    '''
+    Returns a feature rich html parser from response content.
+
+    response: Http response received from a request.
+    '''
+
+    content = await response.text()
+    return html.document_fromstring(content)
+
+
+class ItemLoader:
+    def __init__(self, factory, parser: html.HtmlElement) -> None:
+        '''
+        Helps loading an object from html xpaths.
+
+        factory: Object that creates an item.
+        parser: Source of information.
+        '''
+
+        self.factory = factory
+        self.parser = parser
+        self._values = {}
+
+    def add_xpath(self, key, xpath):
+        el = self.parser.xpath(xpath)
+        if not el:
+            raise ValueError(f'Provided xpath returned empty: {xpath}')
+        
+        value = el[0].text_content()
+        self._values[key] = value
+
+    def load(self):
+        return self.factory(**self._values)
+
