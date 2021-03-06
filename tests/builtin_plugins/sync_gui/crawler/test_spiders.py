@@ -1,26 +1,24 @@
+from unisul_sync_gui.crawler import http
 from unisul_sync_gui.builtin_plugins.sync_gui.crawler import (
     spiders,
     items,
 )
 
 
-def test_subject_parser(middleware_factory, crawler_auth_factory):
-    async def with_response(response):
-        assert response.status == 200
+def test_book_spider_creates_two_request_loaders_per_subject(fake_loader):
+    subjects = [
+        items.Subject(name='foo', class_id='123'),
+    ]
 
-    middleware = middleware_factory(spiders.SubjectSpider())
-    middleware.on_response = with_response
+    def patch_request(loader, **kwargs):
+        assert loader.subject == subjects[0]
 
-    crawler = crawler_auth_factory(middleware)
-    crawler.start()
+        kwargs['callback'] = fake_loader.load
+        return http.Request(**kwargs)
 
+    spider = spiders.BookSpider(subjects)
+    spider.request = patch_request
 
-def test_subject_parser_loader(middleware_factory, crawler_auth_factory):
-    async def with_subjects(subjects):
-        assert len(subjects) != 0
+    requests = list(spider.start_requests())
 
-    middleware = middleware_factory(spiders.SubjectSpider())
-    middleware.on_processed_response = with_subjects
-
-    crawler = crawler_auth_factory(middleware)
-    crawler.start()
+    assert len(requests) == 2

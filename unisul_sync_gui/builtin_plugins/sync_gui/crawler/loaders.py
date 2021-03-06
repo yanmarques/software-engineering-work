@@ -1,5 +1,7 @@
 from .items import Subject, Book
-from ....crawler import abc
+from ....crawler import abc, EVA_DOMAIN
+
+from urllib.parse import urlparse, parse_qs
 
 
 class SubjectLoader(abc.AbstractItemLoader):
@@ -34,6 +36,29 @@ class BookLoader(abc.AbstractItemLoader):
         builder.add_xpath('download_url', url_xpath)
 
         builder.add_value('subject', self.subject)
+
+    def process_item(self, book: Book):
+        # parse url string to a object
+        parse = urlparse(book.download_url)
+
+        # extract url hostname
+        hostname = parse.hostname
+
+        # is this an random internet link?
+        if hostname and hostname != EVA_DOMAIN:
+            book.is_external = True
+        else:
+            # try to retrieve filename from url
+            parsed_qs = parse_qs(parse.query)
+
+            if Book.qs_file_arg in parsed_qs:
+                filename = parsed_qs[Book.qs_file_arg][0]
+                book.filename = filename
+
+                # assume it is always downloadable 
+                book.seems_downloadable = True
+
+        return book
 
     def is_valid(self, item: Book) -> bool:
         return item.name and item.download_url

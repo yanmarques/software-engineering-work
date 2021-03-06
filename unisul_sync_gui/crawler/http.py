@@ -50,3 +50,20 @@ class Request(abc.objectview):
             parse = parse._replace(**kwargs)
 
         return parse.geturl()
+
+
+class RequestLoaderMixin:
+    def request(self, loader: abc.AbstractItemLoader, **kwargs):
+        '''
+        Helps dispatching a request callback directly to loader.
+
+        loader: Send response to loader.
+        '''
+
+        async def _callback(response, _):
+            return await loader.load(response)
+
+        # overwrite callback with loader function
+        kwargs['callback'] = _callback
+
+        return Request(**kwargs)

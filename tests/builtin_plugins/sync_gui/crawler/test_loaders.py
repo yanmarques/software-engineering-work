@@ -1,10 +1,12 @@
-import os
-from unisul_sync_gui.crawler.api import MiddlewareAwareCrawler
+import pytest
 from unisul_sync_gui.builtin_plugins.sync_gui.crawler import (
-    spiders,
     items,
+    loaders,
 )
 from aiohttp.test_utils import make_mocked_coro
+
+import os
+from unittest.mock import Mock
 
 
 def get_test_html(filename):
@@ -13,25 +15,55 @@ def get_test_html(filename):
         return io_r.read()
 
 
-def test_subject_parser(middleware_factory, mock_crawler_session):
+def response_from(filename):
+    content = get_test_html(filename)
+    response = Mock()
+    response.text = make_mocked_coro(content)
+    return response
+
+
+@pytest.mark.asyncio
+async def test_subject_parser_load_items(middleware_factory, mock_crawler_session):
     expected = [
         items.Subject(name='Foo', class_id='123'),
         items.Subject(name='Bar', class_id='321'),
         items.Subject(name='Baz', class_id='213'),
     ]
+    
+    response = response_from('subject-spider-response.html')
 
-    async def patch_response(response):
-        content = get_test_html('subject-spider-response.html')
-        response.text = make_mocked_coro(content)
+    result = await loaders.SubjectLoader().load(response)
 
-    async def with_items(subjects):
-        names = [s.name for s in subjects]
-        assert names == expected
+    assert result == expected
 
-    middleware = middleware_factory(spiders.SubjectSpider())
-    middleware.on_response = patch_response
-    middleware.on_processed_response = with_items
 
-    crawler = MiddlewareAwareCrawler(middleware)
-    mock_crawler_session(crawler)
-    crawler.start()
+@pytest.mark.asyncio
+async def test_book_load_items(middleware_factory, mock_crawler_session):
+    subject = Mock()
+
+    expected = [
+        items.Book(name='Book 1', 
+                   download_url='/foo', 
+                   filename=None,
+                   is_external=False,
+                   seems_downloadable=False,
+                   subject=subject),
+        items.Book(name='Book 2', 
+                   download_url='/bar?arquivo=test-filename',
+                   filename='test-filename',
+                   is_external=False,
+                   seems_downloadable=True,
+                   subject=subject),
+        items.Book(name='Book 3',
+                   download_url='https://www.fake.com',
+                   filename=None,
+                   is_external=True,
+                   seems_downloadable=False,
+                   subject=subject),
+    ]
+    
+    response = response_from('book-spider-response.html')
+
+    result = await loaders.BookLoader(subject).load(response)
+
+    assert result == expected

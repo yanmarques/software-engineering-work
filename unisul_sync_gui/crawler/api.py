@@ -3,6 +3,8 @@ from . import abc, http
 
 import asyncio
 
+EVA_DOMAIN = 'www.uaberta.unisul.br'
+
 
 class AsyncCrawler:
     def __init__(self,
@@ -106,3 +108,8 @@ class MiddlewareAwareCrawler(AsyncCrawler):
     async def _on_error(self, cb, error, *args):
         if await cb(error, *args) is not True:
             raise error
+
+
+class EVASpiderMixin(abc.Spider):
+    domain = EVA_DOMAIN
+    preffix = '/eadv4/'

@@ -57,6 +57,18 @@ class ItemBuilder:
 
         self._params[key] = value
 
+    def get_value(self, key):
+        '''
+        Return value of current added parameters.
+
+        If ``key`` was not added to class yet, a ``KeyError`` will
+        be raised.
+
+        key: Identifier of value.
+        '''
+
+        return self._params[key]
+
     def build(self):
         '''
         Call factory and return created object with added parameters.

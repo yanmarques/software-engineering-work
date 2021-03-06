@@ -1,13 +1,13 @@
+from typing import List
+from unisul_sync_gui.builtin_plugins.sync_gui.crawler.items import Subject
 from . import loaders
-from ....crawler import http, abc
+from ....crawler import (
+    http,
+    EVASpiderMixin,
+)
 
 
-class AbstractEvaSpider(abc.Spider):
-    domain = 'www.uaberta.unisul.br'
-    preffix = '/eadv4/'
-
-
-class SubjectSpider(AbstractEvaSpider):
+class SubjectSpider(EVASpiderMixin, http.RequestLoaderMixin):
     subject_args = dict(turmaIdSessao=-1,
                         situacao="C",
                         turmaId=-1,
@@ -17,68 +17,40 @@ class SubjectSpider(AbstractEvaSpider):
                         ferramenta="")
 
     def start_requests(self):
-        yield http.Request(url='/listaDisciplina.processa',
+        yield self.request(url='/listaDisciplina.processa',
                            params=self.subject_args, 
-                           callback=self.parse_subjects)
-
-    async def parse_subjects(self, response, request):
-        loader = loaders.SubjectLoader()
-        return await loader.load(response)
+                           loader=loaders.SubjectLoader())
 
 
-class BookSpider:
-    book_args = dict(situacao=1,
-                     tipoFiltro=0,
-                     turmaAberta='true',
-                     turmaFechada='false')
+class BookSpider(EVASpiderMixin, http.RequestLoaderMixin):
+    book_params = dict(situacao=1,
+                       tipoFiltro=0,
+                       turmaAberta='true',
+                       turmaFechada='false')
 
-    def __init__(self):
-        pass
+    def __init__(self, subjects: List[Subject]):
+        super().__init__()
+        self.subjects = subjects
 
-    # def start_requests(self):
-    #     for item in self.load_subjects():
-    #         subject = SubjectLoader.from_dict(item)
-    #         self.logger.debug('reading subject: %s', subject['name'])
-    #         args = self._get_book_args(subject)
-    #         yield http.web_open('/listaMidiatecas.processa', 
-    #                             meta={'subject': subject},
-    #                             args=args,
-    #                             callback=self.parse_books)
+    def start_requests(self):
+        for subject in self.subjects:
+            # get query parameters for this subject
+            params = self._get_book_params(subject)
 
-    #         # get learning unit books
-    #         yield http.web_open('/listaMidiateca.processa', 
-    #                             meta={'subject': subject},
-    #                             args={'turmaIdSessao': args['turmaIdSessao']},
-    #                             callback=self.parse_learning_unit_books)
-            
-    # def parse_learning_unit_books(self, response):
-    #     assert 'subject' in response.meta, 'Main subject was not provided.'
-    #     subject = response.meta['subject']
-    #     self.logger.debug('subject: %s', subject)
-    #     return _display_and_load(self, 
-    #                             'book', 
-    #                             response, 
-    #                             LearningUnitBookLoader(subject=subject))
+            # reguler books
+            yield self.request(url='/listaMidiatecas.processa', 
+                               params=params,
+                               loader=loaders.BookLoader(subject))
 
-    # def parse_books(self, response):
-    #     assert 'subject' in response.meta, 'Main subject was not provided.'
-    #     subject = response.meta['subject']
-    #     self.logger.debug('subject: %s', subject)
-    #     return _display_and_load(self, 
-    #                             'book', 
-    #                             response, 
-    #                             self.get_loader(subject))
-
-    # def load_subjects(self):
-    #     return os_files.load_sync_data(self.exporter_dir, self.subject_uri)
-
-    # def get_loader(self, subject):
-    #     return BookLoader(subject=subject)
+            # learning unit books
+            yield self.request(url='/listaMidiateca.processa', 
+                               params={'turmaIdSessao': subject.class_id},
+                               loader=loaders.LearningUnitBookLoader(subject))
     
-    def _get_book_args(self, subject_item):
-        new_args = BookSpider.book_args
-        new_args['turmaIdSessao'] = subject_item['class_id']
-        return new_args
+    def _get_book_params(self, subject: Subject):
+        new_params = self.book_params.copy()
+        new_params['turmaIdSessao'] = subject.class_id
+        return new_params
 
 
 class FinishBook:
