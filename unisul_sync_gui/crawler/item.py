@@ -62,6 +62,17 @@ class Item:
             setattr(self, field.name, output)
 
 
+class DtClassAsDictMixin:
+    '''
+    Process dataclass items to dict.
+
+    Generally used together with ``abc.BaseExporter``
+    '''
+
+    def process_item(self, item):
+        return dataclasses.asdict(item)
+
+
 def text_processor(*args):
     '''
     Return nice default text processors.
