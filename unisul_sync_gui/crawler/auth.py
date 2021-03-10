@@ -19,15 +19,20 @@ class AsyncAuthManager:
     user_field = 'id_login'
     passwd_field = 'id_senha'
 
-    def __init__(self):
+    def __init__(self, 
+                 cookies_path: str,
+                 creds_path: str):
         '''
         Provides an interface to Eva web authentication
         mechanism.
+
+        cookies_path: File location to save the cookies.
         '''
 
         self._logged = False
+        self._creds_path = creds_path
         self._session = cookie.ClientSession()
-        self._dumper = json.JsonDumper(auth_name())
+        self._dumper = json.JsonDumper(cookies_path)
 
     @property
     def is_logged_in(self):
@@ -38,10 +43,18 @@ class AsyncAuthManager:
         return self._logged
 
     async def __aenter__(self) -> "AsyncAuthManager":
-        return await self._session.__aenter__()
+        await self._session.__aenter__()
+        return self
 
     def __aexit__(self, *args):
         return self._session.__aexit__(*args)
+
+    async def close(self):
+        '''
+        Close underlying web client session.
+        '''
+
+        await self._session.close()
 
     async def from_cookies(self) -> bool:
         '''
@@ -72,7 +85,7 @@ class AsyncAuthManager:
         # handle saving credentials file
         if rememberme and self.is_logged_in:
             self._dumper.dump(data)
-            os.chmod(auth_name(), 0o600)
+            os.chmod(self._creds_path, 0o600)
 
         return self.is_logged_in
 
@@ -111,13 +124,10 @@ class AsyncAuthManager:
         # read response body
         body = await response.text()
 
-        # check for form fields
-        has_fields = self.user_field in body and self.passwd_field in body
-
         # check for redirect url
         has_js_redirect = 'eadv4/login/index.jsp' in body
 
-        return not (has_fields or has_js_redirect)
+        return not has_js_redirect
 
     def load_creds(self):
         '''
@@ -127,7 +137,7 @@ class AsyncAuthManager:
         parameters, None is returned.
         '''
 
-        if not os.path.exists(auth_name()):
+        if not os.path.exists(self._creds_path):
             return
 
         auth_data = self._dumper.load()
@@ -143,10 +153,10 @@ class AsyncAuthManager:
         Make a request and record whether is authenticated.
         '''
 
-        async with self._session.request(*args, **kwargs) as resp:
-            result = await self.check_response(resp)
+        async with self._request(*args, **kwargs) as resp:
+            self._logged = await self.check_response(resp)
         
-        return self._set_logged(result)
+        return self.is_logged_in
 
     def _request(self, method, path, **kwargs):
         '''
@@ -156,7 +166,3 @@ class AsyncAuthManager:
         url = urljoin(f'https://{EVA_DOMAIN}', path)
 
         return self._session.request(method, url, **kwargs)
-
-
-def auth_name():
-    return config.path_name_of('auth.json')

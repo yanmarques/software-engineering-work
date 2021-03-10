@@ -54,11 +54,11 @@ class FakeSpider(abc.Spider):
 
 
 class FakeContext:
-    def __init__(self, **kwargs) -> None:
-        pass
+    def __init__(self, return_value=None, **kwargs) -> None:
+        self.ret = return_value or Mock()
 
     async def __aenter__(self):
-        return Mock()
+        return self.ret
 
     def __aexit__(self, *_):
         return self
@@ -96,6 +96,11 @@ class FakeDocumentLoader(abc.AbstractItemLoader):
 
     def item_factory(self, **kwargs):
         return dict(**kwargs)
+
+
+@pytest.fixture
+def fake_ctx_factory():
+    return FakeContext
 
 
 @pytest.fixture
