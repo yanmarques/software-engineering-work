@@ -1,5 +1,7 @@
 import pytest
+from unisul_sync_gui.crawler import auth
 from aiohttp.test_utils import make_mocked_coro
+from aiohttp import CookieJar
 
 from unittest.mock import Mock, MagicMock
 
@@ -94,3 +96,30 @@ async def test_auth_failed_with_custom_html(with_js_redirect_response):
     await with_js_redirect_response.from_rememberme()
 
     assert with_js_redirect_response.is_logged_in is False
+
+
+@pytest.mark.asyncio
+async def test_successfull_auth_from_creds_save_to_disk(successfull_auth: auth.AsyncAuthManager):
+    expected_creds = ('foo', 'bar')
+
+    await successfull_auth.from_creds(*expected_creds)
+    
+    result = successfull_auth.load_creds()
+
+    assert result == expected_creds
+
+
+@pytest.mark.asyncio
+async def test_auth_loads_and_saves_cookies_with_ctx_manager(successfull_auth: auth.AsyncAuthManager):
+    # initialize a cookie in disk
+    cookie_jar = CookieJar()
+    cookie_jar.update_cookies(dict(foo='bar'))
+    cookie_jar.save(successfull_auth._session.cookies_path)
+
+    # run object using context manager
+    async with successfull_auth:
+        pass
+
+    session = successfull_auth._session
+    assert session.cookie_jar._cookies['']['foo'].value == 'bar'
+    

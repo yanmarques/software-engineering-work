@@ -20,8 +20,8 @@ class AsyncAuthManager:
     passwd_field = 'id_senha'
 
     def __init__(self, 
-                 cookies_path: str,
-                 creds_path: str):
+                 creds_path: str,
+                 cookies_path: str):
         '''
         Provides an interface to Eva web authentication
         mechanism.
@@ -31,8 +31,7 @@ class AsyncAuthManager:
 
         self._logged = False
         self._creds = json.JsonDumper(creds_path)
-        self._session = cookie.ClientSession()
-        self._cookies = json.JsonDumper(cookies_path)
+        self._session = cookie.ClientSession(cookies_path)
 
     @property
     def is_logged_in(self):
