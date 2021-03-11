@@ -30,9 +30,9 @@ class AsyncAuthManager:
         '''
 
         self._logged = False
-        self._creds_path = creds_path
+        self._creds = json.JsonDumper(creds_path)
         self._session = cookie.ClientSession()
-        self._dumper = json.JsonDumper(cookies_path)
+        self._cookies = json.JsonDumper(cookies_path)
 
     @property
     def is_logged_in(self):
@@ -84,8 +84,9 @@ class AsyncAuthManager:
 
         # handle saving credentials file
         if rememberme and self.is_logged_in:
-            self._dumper.dump(data)
-            os.chmod(self._creds_path, 0o600)
+            # send to disk
+            self._creds.dump(data)
+            self.set_creds_perms()
 
         return self.is_logged_in
 
@@ -137,16 +138,27 @@ class AsyncAuthManager:
         parameters, None is returned.
         '''
 
-        if not os.path.exists(self._creds_path):
+        if not os.path.exists(self._creds.path):
             return
 
-        auth_data = self._dumper.load()
+        # fix file permissions
+        self.set_creds_perms()
+
+        auth_data = self._creds.load()
         
+        # creates (username, password) tuple
         credentials = (auth_data.get(self.user_field), 
                        auth_data.get(self.passwd_field))
 
         if all(credentials):
             return credentials
+
+    def set_creds_perms(self):
+        '''
+        Restrict access of credentials file to owner-only.
+        '''
+
+        os.chmod(self._creds.path, 0o600)
 
     async def _remember_auth_response(self, *args, **kwargs):
         '''
