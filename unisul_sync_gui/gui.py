@@ -1,9 +1,9 @@
-from . import plugins, login
-from .app import context
+from . import plugins
+from .app import context, create_auth_manager
 
 
-def show():
-    login_kwargs = dict()
+async def show():
+    auto = True
 
     if context.config.get('fixing_windows_logout_error', False):
         # ensure we do not come here again
@@ -26,17 +26,26 @@ def show():
 
         # say to authenticator to ignore disk credentials
         # because we are trying to show the login page
-        login_kwargs.update(ignore_disk_creds=True)
+        auto = False
     else:
         # start plugin manager normally
         plugin = plugins.PluginManager()
         plugin.register()
 
+    auth_manager = await create_auth_manager(auto=auto, 
+                                       remember_me=context.config.get('rememberme'))
+
     context.signals.opening.emit()
 
     try:
-        context.windows['login'] = login.window.Login(**login_kwargs)
-        
+        if auth_manager.is_logged_in:
+            context.signals.auth_done.emit()
+        else:
+            context.signals.auth_failed.emit()
+
+        # close authentication manager        
+        await auth_manager.close()
+
         context.signals.started.emit(plugin)
 
         return context.app.exec_()

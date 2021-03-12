@@ -56,6 +56,14 @@ def config_name():
     return path_name_of('cfg.json')
 
 
+def creds_name():
+    return path_name_of('auth.json')
+
+
+def cookies_name():
+    return path_name_of('cookies')
+
+
 def path_name_of(file_name):
     return os.path.join(config_path(), file_name)
 

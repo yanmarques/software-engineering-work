@@ -2,7 +2,7 @@ from . import screen, setting, loaders, texts
 from .. import util
 from ..settings import PluginTab
 from ... import config, spider, signals, widgets
-from ...dashboard.window import Dashboard
+from ..dashboard.window import Dashboard
 from ...book_bot.spiders import (
     eva_parser,
     sync_spider

@@ -1,4 +1,5 @@
 from . import config, signals, dist_util
+from .crawler import auth
 from PyQt5 import QtWidgets, QtGui
 import requests
 
@@ -30,6 +31,36 @@ def eva_icon(size: str='16x16'):
                         size, 
                         'apps', 
                         'eva.png')
+
+
+async def create_auth_manager(auto=True, 
+                              remember_me=False) -> auth.AsyncAuthManager:
+    '''
+    Handle creating the authentication manager class. It may
+    try to call automatic authentication.
+
+    If ``auto`` is true automatic login from file credentials.
+    
+    It will always try to authentication with the current cookies.  
+    '''
+
+    auth_manager = auth.AsyncAuthManager(
+        config.creds_name(),
+        config.cookies_name(),
+    )
+
+    # simulate a "async with" to load cookies
+    await auth_manager.__aenter__()
+
+    if auto:
+        # try from cookies
+        await auth_manager.from_cookies()
+        
+        # maybe try from credentials when cookies failed
+        if remember_me and not auth_manager.is_logged_in:
+            await auth_manager.from_rememberme()
+
+    return auth_manager
 
 
 class AppCtxt:

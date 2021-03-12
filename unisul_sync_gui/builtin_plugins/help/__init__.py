@@ -1,7 +1,7 @@
 from . import screen
 from .. import util
+from ..dashboard.window import Dashboard
 from ... import __version__ as app_version, __author__ as app_author
-from ...dashboard.window import Dashboard
 from ...app import context
 from PyQt5 import QtWidgets, QtCore, QtGui
 

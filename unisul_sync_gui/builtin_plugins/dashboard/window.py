@@ -1,7 +1,7 @@
 from . import screen
-from .. import config, widgets
-from ..builtin_plugins import util
-from ..app import context
+from .. import util
+from ... import widgets, app
+from ...crawler import auth
 from PyQt5 import QtWidgets
 
 import platform
@@ -10,23 +10,25 @@ import platform
 class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        # use here to store logout qthread
+        self.logout_runner = None
+
+    def show(self):
         self.setupUi(self)
 
         # signaling
         self.logout_button.triggered.connect(self.on_logout)
         self.close_button.triggered.connect(self.close)
 
-        context.signals.landing.emit(sender=self)
+        app.context.signals.landing.emit(sender=self)
         
         self.opts_menu.addAction(self.logout_button)
         self.opts_menu.addAction(self.close_button)
-        self.tabWidget.setCurrentIndex(context.config.get('default_tab', 0))
+        self.tabWidget.setCurrentIndex(app.context.config.get('default_tab', 0))
 
-        # use here to store logout qthread
-        self.logout_runner = None
-
-        self.show()
-        context.signals.landed.emit(sender=self)
+        super().show()
+        app.context.signals.landed.emit(sender=self)
 
     def on_logout(self, event):
         msg = widgets.ConfirmationMessageBox(default_accept=False)
@@ -36,8 +38,6 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
             # again, the app will not face as a first time user
             self._maybe_reset_first_time()
 
-            login = context.windows['login']
-
             def on_logout_done():
                 self.close()
 
@@ -46,18 +46,18 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
                 else:
                     # reopen a fresh login window, without trying credentials from disk
                     # because we do not want to login again
-                    context.windows['login'] = login.new_from_this(ignore_disk_creds=True)
+                    app.context.signals.auth_failed.emit()
 
             self.setDisabled(True)
 
             # will actually logout, this invalidates the cookiejar stored in disk
-            self.logout_runner = util.GenericCallbackRunner(login.http_auth.logout)
-            self.logout_runner.done.connect(on_logout_done)
-            self.logout_runner.start()
+            #self.logout_runner = util.GenericCallbackRunner(self.auth_manager.logout)
+            #self.logout_runner.done.connect(on_logout_done)
+            #self.logout_runner.start()
         
     def _maybe_reset_first_time(self):
-        if context.config['first_time']:
-            context.update_config({'first_time': False})
+        if app.context.config['first_time']:
+            app.context.update_config({'first_time': False})
 
     def _fix_windows_logout(self):
         '''
@@ -75,13 +75,13 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
         '''
 
         from .. import gui
-        from ..builtin_plugins.updates import autoupdate
+        from ..updates import autoupdate
 
         import multiprocessing
 
         # sinalize to the incoming process that we are avoiding
         # the windows logout error, so it can act accordingly
-        context.update_config({'fixing_windows_logout_error': True})
+        app.context.update_config({'fixing_windows_logout_error': True})
 
         # are we a bundled app
         if autoupdate.can_make_it():
@@ -96,4 +96,4 @@ class Dashboard(QtWidgets.QMainWindow, screen.Ui_MainWindow):
             multiprocessing.Process(target=gui.show).start()
 
         # exit the running process
-        context.exit()
+        app.context.exit()

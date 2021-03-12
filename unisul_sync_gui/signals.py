@@ -35,6 +35,9 @@ class _signals:
     closing = pysignal()
     started = pysignal()
 
+    auth_done = pysignal()
+    auth_failed = pysignal()
+
     showing = pysignal()
     shown = pysignal()
 

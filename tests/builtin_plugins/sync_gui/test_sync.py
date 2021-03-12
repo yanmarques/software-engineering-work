@@ -3,8 +3,10 @@ from unisul_sync_gui.crawler import (
     cookie,
     MiddlewareAwareCrawler,
 )
-from unisul_sync_gui.builtin_plugins.sync_gui.crawler import exporter
-from unisul_sync_gui.builtin_plugins.sync_gui import spiders
+from unisul_sync_gui.builtin_plugins.sync_gui.crawler import (
+    exporter,
+    spiders,
+)
 
 
 async def implementation():

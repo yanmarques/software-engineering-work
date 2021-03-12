@@ -157,13 +157,20 @@ class PluginStarter(abc.ABC):
     def __init__(self):
         super().__init__()
         context.signals.started.connect(self.start)
+        context.signals.opening.connect(self.opening)
+        context.signals.opening.connect(self.closing)
         self.init()
 
     def init(self):
         pass
 
-    @abc.abstractmethod
     def start(self):
+        pass
+
+    def opening(self):
+        pass
+
+    def closing(self):
         pass
 
 
