@@ -5,7 +5,7 @@ from ... import app
 
 class AuthFailedHandler(util.PluginStarter):
     def init(self):
-        self.login = window.Login()
+        self.login = window.LoginDialog()
 
     def opening(self):
         app.context.signals.auth_failed.connect(self.open_login)

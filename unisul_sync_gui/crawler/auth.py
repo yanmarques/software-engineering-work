@@ -1,10 +1,12 @@
+import asyncio
 import aiohttp
+from aiohttp.client import ClientSession
 from . import (
     json, 
     cookie,
     EVA_DOMAIN,
 )
-from .. import config
+from ..util import logger
 
 import os
 from urllib.parse import urljoin
@@ -21,7 +23,7 @@ class AsyncAuthManager:
 
     def __init__(self, 
                  creds_path: str,
-                 cookies_path: str):
+                 session: ClientSession = None):
         '''
         Provides an interface to Eva web authentication
         mechanism.
@@ -31,7 +33,7 @@ class AsyncAuthManager:
 
         self._logged = False
         self._creds = json.JsonDumper(creds_path)
-        self._session = cookie.ClientSession(cookies_path)
+        self._session = session or ClientSession()
 
     @property
     def is_logged_in(self):
@@ -45,8 +47,9 @@ class AsyncAuthManager:
         await self._session.__aenter__()
         return self
 
-    def __aexit__(self, *args):
-        return self._session.__aexit__(*args)
+    async def __aexit__(self, *args):
+        await self.close()
+        return await self._session.__aexit__(*args)
 
     async def close(self):
         '''

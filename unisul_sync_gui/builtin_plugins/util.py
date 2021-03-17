@@ -1,8 +1,10 @@
+from ..util import logger
 from ..app import context
 from ..signals import pysignal
 from PyQt5 import QtWidgets, QtCore
 
 import abc
+import asyncio
 
 
 def select_directory(parent=None):
@@ -80,6 +82,7 @@ class LoadingPoints(QtCore.QThread):
         self.stopped = True
 
 
+
 class GenericCallbackRunner(QtCore.QThread):
     done = QtCore.pyqtSignal(object)
     err = QtCore.pyqtSignal(Exception)
@@ -89,6 +92,10 @@ class GenericCallbackRunner(QtCore.QThread):
         self._callback = callback
         self._args = args
         self._kwargs = kwargs
+        self.err.connect(self.default_error_handler)
+
+    def default_error_handler(self, error):
+        logger.error(str(error), exc_info=error)
 
     def run(self):
         try:
@@ -96,6 +103,29 @@ class GenericCallbackRunner(QtCore.QThread):
             self.done.emit(result)
         except Exception as exc:
             self.err.emit(exc)
+
+
+class CoroRunner(GenericCallbackRunner):
+    def __init__(self, coro, *args, **kwargs) -> None:
+        '''
+        Generic class which runs a coroutine with in a 
+        QThread.
+
+        The class handles calling the coroutine from a
+        synchronous context.
+        '''
+        super().__init__(self._sync_run, *args, **kwargs)
+
+        self._coro = coro
+
+        # important, create a new loop everytime
+        self._loop = asyncio.new_event_loop()
+
+    def _sync_run(self, *_, **__):
+        return self._loop.run_until_complete(self._async_run())
+
+    async def _async_run(self):
+        return await self._coro(*self._args, **self._kwargs)
 
 
 class WidgetBuilder(QtWidgets.QWidget):

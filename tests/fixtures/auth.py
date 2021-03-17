@@ -28,12 +28,13 @@ class FakeAuthManager(auth.AsyncAuthManager):
 @pytest.fixture
 @pytest.mark.asyncio
 async def auth_manager(tmp_path, fake_ctx_factory):
-    manager = FakeAuthManager(tmp_path / Path('foo-creds'), 
-                              tmp_path / Path('foo-cookies'))
+    session = fake_ctx_factory()
+    session.request = lambda *_, **__: fake_ctx_factory()
 
-    manager._request = lambda *_, **__: fake_ctx_factory()
-    yield manager
-    await manager.close()
+    manager = FakeAuthManager(tmp_path / Path('foo-creds'), 
+                              session)
+
+    return manager
 
 
 @pytest.fixture

@@ -64,6 +64,10 @@ def cookies_name():
     return path_name_of('cookies')
 
 
+def logging_name():
+    return path_name_of('log')
+
+
 def path_name_of(file_name):
     return os.path.join(config_path(), file_name)
 
