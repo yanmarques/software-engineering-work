@@ -4,6 +4,7 @@ from ...app import context
 from ...util import logger
 from ...crawler import auth
 from PyQt5 import QtCore, QtWidgets, QtGui
+import qasync 
 
 
 class LoginDialog(QtWidgets.QDialog, screen.Ui_Dialog):
@@ -33,8 +34,8 @@ class LoginDialog(QtWidgets.QDialog, screen.Ui_Dialog):
             self.password_input
         )))
 
-        self.password_input.returnPressed.connect(self.on_login_enter)
-        self.login_button.clicked.connect(self.on_login_enter)
+        self.password_input.returnPressed.connect(self.on_login_btn_cliked)
+        self.login_button.clicked.connect(self.on_login_btn_cliked)
 
         self.remember_checkbox.setChecked(context.config.get('rememberme', True))
         self.remember_checkbox.clicked.connect(self.on_rememberme_changed)
@@ -46,33 +47,30 @@ class LoginDialog(QtWidgets.QDialog, screen.Ui_Dialog):
         #     self.password_input.setText(credentials[1])
 
         super().show()
-            
-    def on_login_enter(self, event=None) -> None:
+    
+    @qasync.asyncSlot()
+    async def on_login_btn_cliked(self) -> None:
         '''
         Event handler for login button. It calls the authentication
         function in the background and return an action to the user
         based on whether authentication has succeeded or not.
         '''
 
-        self.setDisabled(True)
+        self.login_button.setEnabled(False)
 
-        def deduce_result(is_logged_in):
-            if is_logged_in:
-                logger.debug('user has logged in')
-                self.on_auth_success()
-            else:
-                logger.debug('auth failed')
-                self.on_auth_failed()
-                
-        self.login_runner = util.CoroRunner(self._perform_login)
+        is_logged_in = False
 
-        # if failed for any reason, ensure dialog is not kept disabled
-        self.login_runner.err.connect(lambda _: self.setDisabled(False))
-
-        # handle authentication result
-        self.login_runner.done.connect(deduce_result)
-
-        self.login_runner.start()
+        try:
+            is_logged_in = await self._perform_login()
+        except Exception as err:
+            logger.error(str(err), exc_info=err)
+        
+        self.login_button.setEnabled(True)
+        
+        if is_logged_in:
+            self.on_auth_success()
+        else:
+            self.on_auth_failed()
 
     async def _perform_login(self) -> bool:
         '''
@@ -84,13 +82,10 @@ class LoginDialog(QtWidgets.QDialog, screen.Ui_Dialog):
         login = self.user_input.text()
         password = self.password_input.text()
 
-        async with context.auth_manager() as auth_manager:
-            logger.debug('cookies: %s', list(auth_manager._session._cookie_jar))
-            is_logged_in = await auth_manager.from_creds(login, 
+        is_logged_in = await context.auth_manager.from_creds(login, 
                                                      password, 
                                                      rememberme=self._rememberme)
 
-        self.setDisabled(False)
         logger.debug('auth result: %s', is_logged_in)
         return is_logged_in
 

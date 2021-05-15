@@ -1,9 +1,11 @@
+import asyncio
 from aiohttp.client import ClientSession
 from aiohttp.cookiejar import CookieJar
 from . import config, signals, dist_util
 from .crawler import auth
 from PyQt5 import QtWidgets, QtGui
 import requests
+import qasync
 
 import functools
 import sys
@@ -56,14 +58,16 @@ class AppCtxt:
             self._config = config.load()
         return self._config
 
-    @cached_property
-    def cookies(self) -> CookieJar:
-        return CookieJar()
+    # @qasync.asyncClose
+    # async def on_loop_close(self, event):
+    #     print('closing session')
+    #     await self.auth_manager.close()
 
+    @cached_property
     def auth_manager(self):
         return auth.AsyncAuthManager(
             config.creds_name(),
-            ClientSession(cookie_jar=self.cookies)
+            ClientSession(loop=asyncio.get_event_loop())
         )
 
     @cached_property

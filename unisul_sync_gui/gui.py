@@ -1,9 +1,10 @@
-import asyncio
 from . import plugins, config
 from .util import logger
 from .app import context
+import qasync
 
 import logging
+import asyncio
 
 
 def setup_logging():
@@ -26,13 +27,13 @@ def setup_logging():
 
 
 def show():
-    status_code = asyncio.run(_start_gui())
-
-    return status_code
+    qasync.run(_start_gui())
 
 
 async def _start_gui():
     setup_logging()
+
+    remember_me = context.config.get('rememberme', False)
 
     if context.config.get('fixing_windows_logout_error', False):
         # ensure we do not come here again
@@ -55,19 +56,17 @@ async def _start_gui():
 
         # say to authenticator to ignore disk credentials
         # because we are trying to show the login page
-        auto = False
+        remember_me = False
     else:
         # start plugin manager normally
         plugin = plugins.PluginManager()
         plugin.register()
+    
+    logged_from_rememberme = False
 
-    remember_me = context.config.get('rememberme', False)
-
-    # instantiate authentication manager
-    async with context.auth_manager() as auth_manager:
-        if remember_me:
-            await auth_manager.from_rememberme()
-        logged_from_rememberme = auth_manager.is_logged_in
+    if remember_me:
+        logged_from_rememberme = await context.auth_manager.from_rememberme()
+        
 
     context.signals.opening.emit()
 
@@ -79,7 +78,9 @@ async def _start_gui():
             context.signals.auth_failed.emit()       
 
         context.signals.started.emit(plugin)
+    except Exception as err:
+        print(err)
+        # context.signals.closing.emit()
 
-        return context.app.exec_()
-    finally:
-        context.signals.closing.emit()
+    loop = asyncio.get_event_loop()
+    await loop.create_future()
